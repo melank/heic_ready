@@ -1,0 +1,10 @@
+{
+  "name": "heic_ready",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "tauri": "cargo tauri",
+    "dev": "echo 'Static frontend mode: edit dist/index.html'",
+    "build": "echo 'Static frontend mode: no build step'"
+  }
+}
