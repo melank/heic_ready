@@ -1,9 +1,9 @@
 use std::{
-    collections::HashMap,
+    collections::{HashMap, HashSet},
     fs,
     path::{Path, PathBuf},
     thread,
-    time::{Duration, Instant},
+    time::{Duration, Instant, SystemTime},
 };
 
 use crossbeam_channel::{Receiver, Sender};
@@ -15,6 +15,12 @@ const STABLE_WINDOW: Duration = Duration::from_millis(300);
 const MAX_STABILIZE_RETRIES: usize = 3;
 const DEBOUNCE_WINDOW: Duration = Duration::from_millis(400);
 const WORKER_COUNT: usize = 2;
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+struct FileSignature {
+    len: u64,
+    modified: Option<SystemTime>,
+}
 
 pub struct WatchService {
     stop_tx: Sender<()>,
@@ -76,14 +82,25 @@ fn run_dispatcher(config: AppConfig, stop_rx: Receiver<()>) -> Result<(), String
     }
 
     let (job_tx, job_rx) = crossbeam_channel::unbounded::<PathBuf>();
-    let worker_handles = spawn_workers(job_rx, stop_rx.clone());
+    let (done_tx, done_rx) = crossbeam_channel::unbounded::<PathBuf>();
+    let worker_handles = spawn_workers(job_rx, done_tx, stop_rx.clone());
 
     let mut last_enqueued: HashMap<PathBuf, Instant> = HashMap::new();
+    let mut last_signature: HashMap<PathBuf, FileSignature> = HashMap::new();
+    let mut in_flight: HashSet<PathBuf> = HashSet::new();
+    enqueue_initial_pending_files(
+        &config,
+        &job_tx,
+        &mut last_enqueued,
+        &mut last_signature,
+        &mut in_flight,
+    );
 
     loop {
         if stop_rx.try_recv().is_ok() {
             break;
         }
+        drain_completed_jobs(&done_rx, &mut in_flight);
 
         match event_rx.recv_timeout(Duration::from_millis(200)) {
             Ok(Ok(event)) => {
@@ -93,15 +110,26 @@ fn run_dispatcher(config: AppConfig, stop_rx: Receiver<()>) -> Result<(), String
                     }
 
                     let now = Instant::now();
-                    if let Some(last_seen) = last_enqueued.get(&path) {
-                        if now.duration_since(*last_seen) < DEBOUNCE_WINDOW {
-                            continue;
-                        }
+                    let Some(signature) = file_signature(&path) else {
+                        continue;
+                    };
+                    if !should_enqueue_path(
+                        &path,
+                        &signature,
+                        now,
+                        &last_enqueued,
+                        &last_signature,
+                        &in_flight,
+                    ) {
+                        continue;
                     }
 
                     last_enqueued.insert(path.clone(), now);
+                    last_signature.insert(path.clone(), signature);
+                    in_flight.insert(path.clone());
                     if let Err(err) = job_tx.send(path.clone()) {
                         log::error!("failed to enqueue path {}: {err}", path.display());
+                        in_flight.remove(&path);
                     }
                 }
             }
@@ -121,21 +149,69 @@ fn run_dispatcher(config: AppConfig, stop_rx: Receiver<()>) -> Result<(), String
     Ok(())
 }
 
-fn spawn_workers(job_rx: Receiver<PathBuf>, stop_rx: Receiver<()>) -> Vec<thread::JoinHandle<()>> {
+fn enqueue_initial_pending_files(
+    config: &AppConfig,
+    job_tx: &Sender<PathBuf>,
+    last_enqueued: &mut HashMap<PathBuf, Instant>,
+    last_signature: &mut HashMap<PathBuf, FileSignature>,
+    in_flight: &mut HashSet<PathBuf>,
+) {
+    for root in &config.watch_folders {
+        let files = collect_pending_files(root, config.recursive_watch);
+        for path in files {
+            let now = Instant::now();
+            let Some(signature) = file_signature(&path) else {
+                continue;
+            };
+            if !should_enqueue_path(
+                &path,
+                &signature,
+                now,
+                last_enqueued,
+                last_signature,
+                in_flight,
+            ) {
+                continue;
+            }
+
+            last_enqueued.insert(path.clone(), now);
+            last_signature.insert(path.clone(), signature);
+            in_flight.insert(path.clone());
+            if let Err(err) = job_tx.send(path.clone()) {
+                log::error!("failed to enqueue initial path {}: {err}", path.display());
+                in_flight.remove(&path);
+            } else {
+                log::info!("initial scan queued for conversion: {}", path.display());
+            }
+        }
+    }
+}
+
+fn spawn_workers(
+    job_rx: Receiver<PathBuf>,
+    done_tx: Sender<PathBuf>,
+    stop_rx: Receiver<()>,
+) -> Vec<thread::JoinHandle<()>> {
     let mut handles = Vec::with_capacity(WORKER_COUNT);
     for worker_id in 0..WORKER_COUNT {
         let worker_job_rx = job_rx.clone();
+        let worker_done_tx = done_tx.clone();
         let worker_stop_rx = stop_rx.clone();
         let builder = thread::Builder::new().name(format!("watch-worker-{worker_id}"));
         let handle = builder
-            .spawn(move || worker_loop(worker_id, worker_job_rx, worker_stop_rx))
+            .spawn(move || worker_loop(worker_id, worker_job_rx, worker_done_tx, worker_stop_rx))
             .expect("spawn worker thread");
         handles.push(handle);
     }
     handles
 }
 
-fn worker_loop(worker_id: usize, job_rx: Receiver<PathBuf>, stop_rx: Receiver<()>) {
+fn worker_loop(
+    worker_id: usize,
+    job_rx: Receiver<PathBuf>,
+    done_tx: Sender<PathBuf>,
+    stop_rx: Receiver<()>,
+) {
     loop {
         if stop_rx.try_recv().is_ok() {
             break;
@@ -145,6 +221,7 @@ fn worker_loop(worker_id: usize, job_rx: Receiver<PathBuf>, stop_rx: Receiver<()
             Ok(path) => {
                 if is_lock_file(&path) {
                     log::info!("[worker {worker_id}] skipped lock file: {}", path.display());
+                    let _ = done_tx.send(path);
                     continue;
                 }
 
@@ -168,11 +245,106 @@ fn worker_loop(worker_id: usize, job_rx: Receiver<PathBuf>, stop_rx: Receiver<()
                         );
                     }
                 }
+                let _ = done_tx.send(path);
             }
             Err(crossbeam_channel::RecvTimeoutError::Timeout) => {}
             Err(crossbeam_channel::RecvTimeoutError::Disconnected) => break,
         }
     }
+}
+
+fn should_enqueue_path(
+    path: &Path,
+    signature: &FileSignature,
+    now: Instant,
+    last_enqueued: &HashMap<PathBuf, Instant>,
+    last_signature: &HashMap<PathBuf, FileSignature>,
+    in_flight: &HashSet<PathBuf>,
+) -> bool {
+    if in_flight.contains(path) {
+        return false;
+    }
+
+    if let Some(last_seen) = last_enqueued.get(path) {
+        if now.duration_since(*last_seen) < DEBOUNCE_WINDOW {
+            return false;
+        }
+    }
+
+    if let Some(previous) = last_signature.get(path) {
+        if previous == signature {
+            return false;
+        }
+    }
+
+    true
+}
+
+fn file_signature(path: &Path) -> Option<FileSignature> {
+    match fs::metadata(path) {
+        Ok(metadata) => Some(FileSignature {
+            len: metadata.len(),
+            modified: metadata.modified().ok(),
+        }),
+        Err(err) => {
+            log::debug!(
+                "skipping signature check for {} due to metadata error: {err}",
+                path.display()
+            );
+            None
+        }
+    }
+}
+
+fn drain_completed_jobs(done_rx: &Receiver<PathBuf>, in_flight: &mut HashSet<PathBuf>) {
+    while let Ok(path) = done_rx.try_recv() {
+        in_flight.remove(&path);
+    }
+}
+
+fn collect_pending_files(root: &Path, recursive: bool) -> Vec<PathBuf> {
+    let mut pending = Vec::new();
+    collect_pending_files_impl(root, recursive, &mut pending);
+    pending
+}
+
+fn collect_pending_files_impl(path: &Path, recursive: bool, out: &mut Vec<PathBuf>) {
+    let entries = match fs::read_dir(path) {
+        Ok(entries) => entries,
+        Err(err) => {
+            log::warn!("failed to read directory {}: {err}", path.display());
+            return;
+        }
+    };
+
+    for entry in entries.flatten() {
+        let entry_path = entry.path();
+        if entry_path.is_dir() {
+            if recursive {
+                collect_pending_files_impl(&entry_path, true, out);
+            }
+            continue;
+        }
+
+        if !is_target_file(&entry_path) {
+            continue;
+        }
+        if has_jpeg_sibling(&entry_path) {
+            continue;
+        }
+
+        out.push(entry_path);
+    }
+}
+
+fn has_jpeg_sibling(path: &Path) -> bool {
+    let Some(stem) = path.file_stem().and_then(|value| value.to_str()) else {
+        return false;
+    };
+    let Some(parent) = path.parent() else {
+        return false;
+    };
+    parent.join(format!("{stem}.jpg")).exists()
 }
 
 fn wait_for_stable_file(path: &Path) -> Result<bool, std::io::Error> {
@@ -241,11 +413,82 @@ mod tests {
         let _ = fs::remove_file(jpg);
     }
 
+    #[test]
+    fn duplicate_signature_is_not_enqueued() {
+        let path = PathBuf::from("/tmp/sample.heic");
+        let now = Instant::now();
+        let signature = FileSignature {
+            len: 123,
+            modified: None,
+        };
+        let mut last_enqueued = HashMap::new();
+        let mut last_signature = HashMap::new();
+        let in_flight = HashSet::new();
+
+        last_enqueued.insert(path.clone(), now - Duration::from_secs(2));
+        last_signature.insert(path.clone(), signature.clone());
+
+        assert!(!should_enqueue_path(
+            &path,
+            &signature,
+            now,
+            &last_enqueued,
+            &last_signature,
+            &in_flight
+        ));
+    }
+
+    #[test]
+    fn in_flight_path_is_not_enqueued() {
+        let path = PathBuf::from("/tmp/sample.heic");
+        let now = Instant::now();
+        let signature = FileSignature {
+            len: 123,
+            modified: None,
+        };
+        let last_enqueued = HashMap::new();
+        let last_signature = HashMap::new();
+        let mut in_flight = HashSet::new();
+        in_flight.insert(path.clone());
+
+        assert!(!should_enqueue_path(
+            &path,
+            &signature,
+            now,
+            &last_enqueued,
+            &last_signature,
+            &in_flight
+        ));
+    }
+
+    #[test]
+    fn jpeg_sibling_check_detects_existing_converted_file() {
+        let dir = unique_temp_dir_path("sibling");
+        fs::create_dir_all(&dir).expect("create temp dir");
+        let heic = dir.join("IMG_0001.heic");
+        let jpg = dir.join("IMG_0001.jpg");
+        fs::write(&heic, b"x").expect("write heic");
+
+        assert!(!has_jpeg_sibling(&heic));
+        fs::write(&jpg, b"y").expect("write jpg");
+        assert!(has_jpeg_sibling(&heic));
+
+        let _ = fs::remove_dir_all(dir);
+    }
+
     fn unique_temp_file_path(name: &str) -> PathBuf {
         let stamp = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .expect("system time")
             .as_nanos();
         std::env::temp_dir().join(format!("heic_ready_{stamp}_{name}"))
+    }
+
+    fn unique_temp_dir_path(name: &str) -> PathBuf {
+        let stamp = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .expect("system time")
+            .as_nanos();
+        std::env::temp_dir().join(format!("heic_ready_dir_{stamp}_{name}"))
     }
 }
