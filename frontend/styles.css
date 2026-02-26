@@ -201,6 +201,12 @@ button {
   cursor: pointer;
 }
 
+.subtle {
+  background: #edf2ee;
+  color: #2f3d33;
+  border: 1px solid #d5ddd4;
+}
+
 #saveButton {
   background: var(--accent);
   color: #fff;
@@ -209,6 +215,51 @@ button {
 #saveButton:disabled {
   opacity: 0.5;
   cursor: default;
+}
+
+.log-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 2px;
+}
+
+.logs {
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+  max-height: 132px;
+  overflow: auto;
+  border: 1px solid #e6ece5;
+  border-radius: 10px;
+  background: #fbfdf9;
+}
+
+.logs li {
+  padding: 7px 10px;
+  border-bottom: 1px solid #edf1ed;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.logs li:last-child {
+  border-bottom: 0;
+}
+
+.log-result-success {
+  color: #176a4d;
+  font-weight: 700;
+}
+
+.log-result-failure {
+  color: #9c2a24;
+  font-weight: 700;
+}
+
+.log-result-skip {
+  color: #7a6326;
+  font-weight: 700;
 }
 
 @media (max-width: 640px) {

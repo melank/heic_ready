@@ -21,6 +21,8 @@ pub struct AppConfig {
     pub recursive_watch: bool,
     pub output_policy: OutputPolicy,
     pub jpeg_quality: u8,
+    #[serde(default = "default_rescan_interval_secs")]
+    pub rescan_interval_secs: u64,
     pub paused: bool,
 }
 
@@ -31,9 +33,14 @@ impl Default for AppConfig {
             recursive_watch: false,
             output_policy: OutputPolicy::Coexist,
             jpeg_quality: 92,
+            rescan_interval_secs: default_rescan_interval_secs(),
             paused: false,
         }
     }
+}
+
+const fn default_rescan_interval_secs() -> u64 {
+    60
 }
 
 pub struct ConfigStore {
@@ -158,6 +165,7 @@ mod tests {
             recursive_watch: true,
             output_policy: OutputPolicy::Replace,
             jpeg_quality: 88,
+            rescan_interval_secs: 120,
             paused: true,
         };
         fs::write(
@@ -184,6 +192,7 @@ mod tests {
         assert_eq!(store.config(), &AppConfig::default());
         let content = fs::read_to_string(store.config_path()).expect("read rewritten config");
         assert!(content.contains("\"output_policy\": \"coexist\""));
+        assert!(content.contains("\"rescan_interval_secs\": 60"));
         let _ = fs::remove_dir_all(root);
     }
 

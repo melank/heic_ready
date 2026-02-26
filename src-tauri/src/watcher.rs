@@ -10,15 +10,17 @@ use std::{
 
 use crossbeam_channel::{Receiver, Sender};
 use notify::{Event, RecommendedWatcher, RecursiveMode, Watcher};
+use serde::Serialize;
 
 use crate::config::{AppConfig, OutputPolicy};
 
 const STABLE_WINDOW: Duration = Duration::from_millis(300);
 const MAX_STABILIZE_RETRIES: usize = 3;
 const DEBOUNCE_WINDOW: Duration = Duration::from_millis(400);
-const RESCAN_INTERVAL: Duration = Duration::from_secs(60);
 const WORKER_COUNT: usize = 2;
 const RECENT_LOG_LIMIT: usize = 10;
+const MIN_RESCAN_INTERVAL_SECS: u64 = 15;
+const MAX_RESCAN_INTERVAL_SECS: u64 = 60 * 60;
 
 static RECENT_LOGS: OnceLock<Mutex<VecDeque<RecentLogEntry>>> = OnceLock::new();
 
@@ -34,6 +36,14 @@ struct RecentLogEntry {
     path: String,
     result: &'static str,
     reason: String,
+}
+
+#[derive(Clone, Debug, Serialize)]
+pub struct RecentLog {
+    pub timestamp_unix_ms: u128,
+    pub path: String,
+    pub result: String,
+    pub reason: String,
 }
 
 pub struct WatchService {
@@ -110,7 +120,8 @@ fn run_dispatcher(config: AppConfig, stop_rx: Receiver<()>) -> Result<(), String
         &mut last_signature,
         &mut in_flight,
     );
-    let mut next_rescan_at = Instant::now() + RESCAN_INTERVAL;
+    let rescan_interval = effective_rescan_interval_secs(config.rescan_interval_secs);
+    let mut next_rescan_at = Instant::now() + Duration::from_secs(rescan_interval);
 
     loop {
         if stop_rx.try_recv().is_ok() {
@@ -147,7 +158,7 @@ fn run_dispatcher(config: AppConfig, stop_rx: Receiver<()>) -> Result<(), String
                 &mut last_signature,
                 &mut in_flight,
             );
-            next_rescan_at = Instant::now() + RESCAN_INTERVAL;
+            next_rescan_at = Instant::now() + Duration::from_secs(rescan_interval);
         }
     }
 
@@ -570,6 +581,42 @@ fn push_recent_log(path: &Path, result: &'static str, reason: &str) {
     });
 }
 
+pub fn get_recent_logs() -> Vec<RecentLog> {
+    let logs = RECENT_LOGS.get_or_init(|| Mutex::new(VecDeque::with_capacity(RECENT_LOG_LIMIT)));
+    let guard = match logs.lock() {
+        Ok(guard) => guard,
+        Err(err) => {
+            log::error!("failed to lock recent log buffer: {err}");
+            return Vec::new();
+        }
+    };
+
+    guard
+        .iter()
+        .rev()
+        .map(|entry| RecentLog {
+            timestamp_unix_ms: entry.timestamp_unix_ms,
+            path: entry.path.clone(),
+            result: entry.result.to_string(),
+            reason: entry.reason.clone(),
+        })
+        .collect()
+}
+
+fn effective_rescan_interval_secs(configured: u64) -> u64 {
+    let clamped = configured.clamp(MIN_RESCAN_INTERVAL_SECS, MAX_RESCAN_INTERVAL_SECS);
+    if clamped != configured {
+        log::warn!(
+            "rescan_interval_secs={} is out of range; clamped to {} (allowed {}..={})",
+            configured,
+            clamped,
+            MIN_RESCAN_INTERVAL_SECS,
+            MAX_RESCAN_INTERVAL_SECS
+        );
+    }
+    clamped
+}
+
 #[cfg(test)]
 fn recent_logs_len() -> usize {
     let logs = RECENT_LOGS.get_or_init(|| Mutex::new(VecDeque::with_capacity(RECENT_LOG_LIMIT)));
@@ -735,6 +782,13 @@ mod tests {
         }
 
         assert_eq!(recent_logs_len(), 10);
+    }
+
+    #[test]
+    fn rescan_interval_is_clamped_to_safe_range() {
+        assert_eq!(effective_rescan_interval_secs(1), 15);
+        assert_eq!(effective_rescan_interval_secs(60), 60);
+        assert_eq!(effective_rescan_interval_secs(99999), 3600);
     }
 
     #[test]

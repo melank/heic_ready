@@ -4,7 +4,7 @@ mod watcher;
 
 use std::sync::Mutex;
 
-use commands::{get_config, set_paused, update_config};
+use commands::{get_config, get_recent_logs, set_paused, update_config};
 use config::{AppConfig, ConfigStore};
 use tauri::{
     menu::{Menu, MenuItem, PredefinedMenuItem},
@@ -130,6 +130,7 @@ pub fn run() {
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
             get_config,
+            get_recent_logs,
             update_config,
             set_paused
         ])

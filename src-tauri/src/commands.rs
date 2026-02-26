@@ -5,6 +5,7 @@ use tauri::{AppHandle, Emitter, State};
 
 use crate::{
     config::{AppConfig, OutputPolicy},
+    watcher,
     restart_watch_service, AppState, EVENT_PAUSED_CHANGED,
 };
 
@@ -21,6 +22,7 @@ pub struct AppConfigDto {
     pub recursive_watch: bool,
     pub output_policy: OutputPolicyDto,
     pub jpeg_quality: u8,
+    pub rescan_interval_secs: u64,
     pub paused: bool,
 }
 
@@ -53,6 +55,7 @@ impl From<AppConfig> for AppConfigDto {
             recursive_watch: value.recursive_watch,
             output_policy: value.output_policy.into(),
             jpeg_quality: value.jpeg_quality,
+            rescan_interval_secs: value.rescan_interval_secs,
             paused: value.paused,
         }
     }
@@ -64,6 +67,9 @@ impl TryFrom<AppConfigDto> for AppConfig {
     fn try_from(value: AppConfigDto) -> Result<Self, Self::Error> {
         if value.jpeg_quality > 100 {
             return Err("jpeg_quality must be in range 0..=100".to_string());
+        }
+        if value.rescan_interval_secs < 15 || value.rescan_interval_secs > 3600 {
+            return Err("rescan_interval_secs must be in range 15..=3600".to_string());
         }
 
         let watch_folders = value
@@ -78,9 +84,15 @@ impl TryFrom<AppConfigDto> for AppConfig {
             recursive_watch: value.recursive_watch,
             output_policy: value.output_policy.into(),
             jpeg_quality: value.jpeg_quality,
+            rescan_interval_secs: value.rescan_interval_secs,
             paused: value.paused,
         })
     }
+}
+
+#[tauri::command]
+pub fn get_recent_logs() -> Vec<watcher::RecentLog> {
+    watcher::get_recent_logs()
 }
 
 #[tauri::command]

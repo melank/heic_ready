@@ -8,8 +8,11 @@ const ui = {
   recursiveWatch: document.getElementById("recursiveWatch"),
   replaceMode: document.getElementById("replaceMode"),
   jpegQuality: document.getElementById("jpegQuality"),
+  rescanIntervalSecs: document.getElementById("rescanIntervalSecs"),
   saveButton: document.getElementById("saveButton"),
-  status: document.getElementById("status")
+  status: document.getElementById("status"),
+  recentLogs: document.getElementById("recentLogs"),
+  refreshLogsButton: document.getElementById("refreshLogsButton")
 };
 
 let baselineConfig = null;
@@ -23,6 +26,7 @@ function normalizeConfig(raw) {
     recursive_watch: Boolean(raw.recursive_watch),
     output_policy: raw.output_policy || "coexist",
     jpeg_quality: Number(raw.jpeg_quality ?? 92),
+    rescan_interval_secs: Number(raw.rescan_interval_secs ?? 60),
     paused: Boolean(raw.paused)
   };
 }
@@ -78,6 +82,7 @@ function readConfigFromForm() {
     recursive_watch: ui.recursiveWatch.checked,
     output_policy: ui.replaceMode.checked ? "replace" : "coexist",
     jpeg_quality: Number(ui.jpegQuality.value),
+    rescan_interval_secs: Number(ui.rescanIntervalSecs.value),
     paused: baselineConfig?.paused ?? false
   });
 }
@@ -87,6 +92,7 @@ function writeConfigToForm(config) {
   ui.recursiveWatch.checked = Boolean(config.recursive_watch);
   ui.replaceMode.checked = (config.output_policy || "coexist") === "replace";
   ui.jpegQuality.value = Number(config.jpeg_quality ?? 92);
+  ui.rescanIntervalSecs.value = Number(config.rescan_interval_secs ?? 60);
 }
 
 function isDirty() {
@@ -111,7 +117,56 @@ function handleFormEdited() {
 }
 
 function validateConfig(config) {
-  return Number.isFinite(config.jpeg_quality) && config.jpeg_quality >= 0 && config.jpeg_quality <= 100;
+  return (
+    Number.isFinite(config.jpeg_quality) &&
+    config.jpeg_quality >= 0 &&
+    config.jpeg_quality <= 100 &&
+    Number.isFinite(config.rescan_interval_secs) &&
+    config.rescan_interval_secs >= 15 &&
+    config.rescan_interval_secs <= 3600
+  );
+}
+
+function formatLogTime(unixMs) {
+  const d = new Date(Number(unixMs));
+  const hh = String(d.getHours()).padStart(2, "0");
+  const mm = String(d.getMinutes()).padStart(2, "0");
+  const ss = String(d.getSeconds()).padStart(2, "0");
+  return `${hh}:${mm}:${ss}`;
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;");
+}
+
+function renderRecentLogs(logs) {
+  if (!Array.isArray(logs) || logs.length === 0) {
+    ui.recentLogs.innerHTML = "<li>No logs yet.</li>";
+    return;
+  }
+
+  ui.recentLogs.innerHTML = logs
+    .map((entry) => {
+      const result = String(entry.result || "skip");
+      const time = formatLogTime(entry.timestamp_unix_ms);
+      return `<li><span class=\"log-result-${escapeHtml(result)}\">${escapeHtml(result.toUpperCase())}</span> ${escapeHtml(time)} - ${escapeHtml(entry.reason)}<br><span>${escapeHtml(entry.path)}</span></li>`;
+    })
+    .join("");
+}
+
+async function refreshRecentLogs() {
+  if (!invoke) {
+    return;
+  }
+  try {
+    const logs = await invoke("get_recent_logs");
+    renderRecentLogs(logs);
+  } catch (error) {
+    ui.recentLogs.innerHTML = `<li>Failed to load logs: ${escapeHtml(error)}</li>`;
+  }
 }
 
 async function loadConfig() {
@@ -126,6 +181,7 @@ async function loadConfig() {
     baselineConfig = config;
     writeConfigToForm(config);
     refreshFormState();
+    await refreshRecentLogs();
   } catch (error) {
     setStatus("error", `Load failed: ${error}`);
   }
@@ -138,7 +194,7 @@ async function saveConfig() {
 
   const config = readConfigFromForm();
   if (!validateConfig(config)) {
-    setStatus("error", "jpeg_quality must be in range 0-100", 3500);
+    setStatus("error", "jpeg_quality: 0-100, rescan_interval_secs: 15-3600", 4000);
     return;
   }
 
@@ -150,6 +206,7 @@ async function saveConfig() {
 
     baselineConfig = config;
     setStatus("saved", "Saved", 2000);
+    await refreshRecentLogs();
   } catch (error) {
     setStatus("error", `Save failed: ${error}`, 5000);
   } finally {
@@ -175,12 +232,14 @@ if (listen) {
   ui.watchFolders,
   ui.recursiveWatch,
   ui.replaceMode,
-  ui.jpegQuality
+  ui.jpegQuality,
+  ui.rescanIntervalSecs
 ].forEach((element) => {
   element.addEventListener("input", handleFormEdited);
   element.addEventListener("change", handleFormEdited);
 });
 
 ui.saveButton.addEventListener("click", saveConfig);
+ui.refreshLogsButton.addEventListener("click", refreshRecentLogs);
 
 loadConfig();

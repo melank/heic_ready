@@ -28,13 +28,17 @@
             <label for="jpegQuality">JPEG quality</label>
             <input id="jpegQuality" type="number" min="0" max="100" />
           </div>
+          <div>
+            <label for="rescanIntervalSecs">Rescan interval (sec)</label>
+            <input id="rescanIntervalSecs" type="number" min="15" max="3600" step="1" />
+          </div>
+        </div>
+
+        <div class="group row">
           <label class="check">
             <input id="replaceMode" type="checkbox" />
             <span>Replace source HEIC (move to Trash)</span>
           </label>
-        </div>
-
-        <div class="group row">
           <label class="check">
             <input id="recursiveWatch" type="checkbox" />
             <span>Recursive watch</span>
@@ -43,6 +47,15 @@
 
         <div class="actions">
           <button id="saveButton" type="button">Save</button>
+        </div>
+
+        <div class="group">
+          <div class="log-head">
+            <label>Recent logs</label>
+            <button id="refreshLogsButton" type="button" class="subtle">Refresh</button>
+          </div>
+          <p class="hint">last 10 entries.</p>
+          <ul id="recentLogs" class="logs"></ul>
         </div>
       </section>
     </main>
