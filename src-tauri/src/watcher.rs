@@ -1,8 +1,9 @@
 use std::{
-    collections::{HashMap, HashSet},
+    collections::{HashMap, HashSet, VecDeque},
     fs,
     path::{Path, PathBuf},
     process::Command,
+    sync::{Mutex, OnceLock},
     thread,
     time::{Duration, Instant, SystemTime},
 };
@@ -15,12 +16,24 @@ use crate::config::{AppConfig, OutputPolicy};
 const STABLE_WINDOW: Duration = Duration::from_millis(300);
 const MAX_STABILIZE_RETRIES: usize = 3;
 const DEBOUNCE_WINDOW: Duration = Duration::from_millis(400);
+const RESCAN_INTERVAL: Duration = Duration::from_secs(60);
 const WORKER_COUNT: usize = 2;
+const RECENT_LOG_LIMIT: usize = 10;
+
+static RECENT_LOGS: OnceLock<Mutex<VecDeque<RecentLogEntry>>> = OnceLock::new();
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct FileSignature {
     len: u64,
     modified: Option<SystemTime>,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+struct RecentLogEntry {
+    timestamp_unix_ms: u128,
+    path: String,
+    result: &'static str,
+    reason: String,
 }
 
 pub struct WatchService {
@@ -92,10 +105,12 @@ fn run_dispatcher(config: AppConfig, stop_rx: Receiver<()>) -> Result<(), String
     enqueue_initial_pending_files(
         &config,
         &job_tx,
+        false,
         &mut last_enqueued,
         &mut last_signature,
         &mut in_flight,
     );
+    let mut next_rescan_at = Instant::now() + RESCAN_INTERVAL;
 
     loop {
         if stop_rx.try_recv().is_ok() {
@@ -106,37 +121,33 @@ fn run_dispatcher(config: AppConfig, stop_rx: Receiver<()>) -> Result<(), String
         match event_rx.recv_timeout(Duration::from_millis(200)) {
             Ok(Ok(event)) => {
                 for path in event.paths {
-                    if !is_target_file(&path) {
-                        continue;
-                    }
-
-                    let now = Instant::now();
-                    let Some(signature) = file_signature(&path) else {
-                        continue;
-                    };
-                    if !should_enqueue_path(
-                        &path,
-                        &signature,
-                        now,
-                        &last_enqueued,
-                        &last_signature,
-                        &in_flight,
-                    ) {
-                        continue;
-                    }
-
-                    last_enqueued.insert(path.clone(), now);
-                    last_signature.insert(path.clone(), signature);
-                    in_flight.insert(path.clone());
-                    if let Err(err) = job_tx.send(path.clone()) {
-                        log::error!("failed to enqueue path {}: {err}", path.display());
-                        in_flight.remove(&path);
+                    if is_target_file(&path) {
+                        enqueue_conversion_job(
+                            &job_tx,
+                            &path,
+                            false,
+                            &mut last_enqueued,
+                            &mut last_signature,
+                            &mut in_flight,
+                        );
                     }
                 }
             }
             Ok(Err(err)) => log::warn!("watch event error: {err}"),
             Err(crossbeam_channel::RecvTimeoutError::Timeout) => {}
             Err(crossbeam_channel::RecvTimeoutError::Disconnected) => break,
+        }
+
+        if Instant::now() >= next_rescan_at {
+            enqueue_initial_pending_files(
+                &config,
+                &job_tx,
+                true,
+                &mut last_enqueued,
+                &mut last_signature,
+                &mut in_flight,
+            );
+            next_rescan_at = Instant::now() + RESCAN_INTERVAL;
         }
     }
 
@@ -153,6 +164,7 @@ fn run_dispatcher(config: AppConfig, stop_rx: Receiver<()>) -> Result<(), String
 fn enqueue_initial_pending_files(
     config: &AppConfig,
     job_tx: &Sender<PathBuf>,
+    allow_same_signature: bool,
     last_enqueued: &mut HashMap<PathBuf, Instant>,
     last_signature: &mut HashMap<PathBuf, FileSignature>,
     in_flight: &mut HashSet<PathBuf>,
@@ -160,31 +172,48 @@ fn enqueue_initial_pending_files(
     for root in &config.watch_folders {
         let files = collect_pending_files(root, config.recursive_watch);
         for path in files {
-            let now = Instant::now();
-            let Some(signature) = file_signature(&path) else {
-                continue;
-            };
-            if !should_enqueue_path(
+            enqueue_conversion_job(
+                job_tx,
                 &path,
-                &signature,
-                now,
+                allow_same_signature,
                 last_enqueued,
                 last_signature,
                 in_flight,
-            ) {
-                continue;
-            }
-
-            last_enqueued.insert(path.clone(), now);
-            last_signature.insert(path.clone(), signature);
-            in_flight.insert(path.clone());
-            if let Err(err) = job_tx.send(path.clone()) {
-                log::error!("failed to enqueue initial path {}: {err}", path.display());
-                in_flight.remove(&path);
-            } else {
-                log::info!("initial scan queued for conversion: {}", path.display());
-            }
+            );
         }
+    }
+}
+
+fn enqueue_conversion_job(
+    job_tx: &Sender<PathBuf>,
+    path: &Path,
+    allow_same_signature: bool,
+    last_enqueued: &mut HashMap<PathBuf, Instant>,
+    last_signature: &mut HashMap<PathBuf, FileSignature>,
+    in_flight: &mut HashSet<PathBuf>,
+) {
+    let now = Instant::now();
+    let Some(signature) = file_signature(path) else {
+        return;
+    };
+    if !should_enqueue_path(
+        path,
+        &signature,
+        now,
+        allow_same_signature,
+        last_enqueued,
+        last_signature,
+        in_flight,
+    ) {
+        return;
+    }
+
+    last_enqueued.insert(path.to_path_buf(), now);
+    last_signature.insert(path.to_path_buf(), signature);
+    in_flight.insert(path.to_path_buf());
+    if let Err(err) = job_tx.send(path.to_path_buf()) {
+        log::error!("failed to enqueue path {}: {err}", path.display());
+        in_flight.remove(path);
     }
 }
 
@@ -233,6 +262,7 @@ fn worker_loop(
             Ok(path) => {
                 if is_lock_file(&path) {
                     log::info!("[worker {worker_id}] skipped lock file: {}", path.display());
+                    push_recent_log(&path, "skip", "lock file");
                     let _ = done_tx.send(path);
                     continue;
                 }
@@ -247,12 +277,14 @@ fn worker_loop(
                                     path.display(),
                                     output_path.display()
                                 );
+                                push_recent_log(&path, "success", "converted to jpeg");
                             }
                             Err(err) => {
                                 log::error!(
                                     "[worker {worker_id}] failed converting {}: {err}",
                                     path.display()
                                 );
+                                push_recent_log(&path, "failure", err.as_str());
                             }
                         }
                     }
@@ -261,12 +293,14 @@ fn worker_loop(
                             "[worker {worker_id}] file did not stabilize within retry limit: {}",
                             path.display()
                         );
+                        push_recent_log(&path, "skip", "did not stabilize within retry limit");
                     }
                     Err(err) => {
                         log::warn!(
                             "[worker {worker_id}] skipped file due to access error {}: {err}",
                             path.display()
                         );
+                        push_recent_log(&path, "skip", &format!("access error: {err}"));
                     }
                 }
                 let _ = done_tx.send(path);
@@ -281,6 +315,7 @@ fn should_enqueue_path(
     path: &Path,
     signature: &FileSignature,
     now: Instant,
+    allow_same_signature: bool,
     last_enqueued: &HashMap<PathBuf, Instant>,
     last_signature: &HashMap<PathBuf, FileSignature>,
     in_flight: &HashSet<PathBuf>,
@@ -295,9 +330,11 @@ fn should_enqueue_path(
         }
     }
 
-    if let Some(previous) = last_signature.get(path) {
-        if previous == signature {
-            return false;
+    if !allow_same_signature {
+        if let Some(previous) = last_signature.get(path) {
+            if previous == signature {
+                return false;
+            }
         }
     }
 
@@ -487,6 +524,39 @@ fn move_file_to_trash(path: &Path) -> Result<(), String> {
     ))
 }
 
+fn push_recent_log(path: &Path, result: &'static str, reason: &str) {
+    let logs = RECENT_LOGS.get_or_init(|| Mutex::new(VecDeque::with_capacity(RECENT_LOG_LIMIT)));
+    let mut guard = match logs.lock() {
+        Ok(guard) => guard,
+        Err(err) => {
+            log::error!("failed to lock recent log buffer: {err}");
+            return;
+        }
+    };
+
+    if guard.len() >= RECENT_LOG_LIMIT {
+        guard.pop_front();
+    }
+    guard.push_back(RecentLogEntry {
+        timestamp_unix_ms: SystemTime::now()
+            .duration_since(SystemTime::UNIX_EPOCH)
+            .map(|value| value.as_millis())
+            .unwrap_or(0),
+        path: path.display().to_string(),
+        result,
+        reason: reason.to_string(),
+    });
+}
+
+#[cfg(test)]
+fn recent_logs_len() -> usize {
+    let logs = RECENT_LOGS.get_or_init(|| Mutex::new(VecDeque::with_capacity(RECENT_LOG_LIMIT)));
+    match logs.lock() {
+        Ok(guard) => guard.len(),
+        Err(_) => 0,
+    }
+}
+
 fn wait_for_stable_file(path: &Path) -> Result<bool, std::io::Error> {
     for _ in 0..MAX_STABILIZE_RETRIES {
         let first = fs::metadata(path)?.len();
@@ -572,6 +642,7 @@ mod tests {
             &path,
             &signature,
             now,
+            false,
             &last_enqueued,
             &last_signature,
             &in_flight
@@ -595,6 +666,7 @@ mod tests {
             &path,
             &signature,
             now,
+            false,
             &last_enqueued,
             &last_signature,
             &in_flight
@@ -631,6 +703,16 @@ mod tests {
         assert_eq!(resolved, dir.join("IMG_0002 (2).jpg"));
 
         let _ = fs::remove_dir_all(dir);
+    }
+
+    #[test]
+    fn recent_log_buffer_keeps_only_latest_ten_items() {
+        let path = PathBuf::from("/tmp/recent.heic");
+        for idx in 0..12 {
+            push_recent_log(&path, "skip", &format!("reason-{idx}"));
+        }
+
+        assert_eq!(recent_logs_len(), 10);
     }
 
     fn unique_temp_file_path(name: &str) -> PathBuf {
