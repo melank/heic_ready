@@ -122,6 +122,15 @@
           </div>
           <div>
             <label>
+              <input id="trashOnReplace" type="checkbox" />
+              Move source to Trash on replace
+            </label>
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label>
               <input id="paused" type="checkbox" disabled />
               Paused (tray controlled)
             </label>
@@ -144,6 +153,7 @@
       const ui = {
         watchFolders: document.getElementById("watchFolders"),
         recursiveWatch: document.getElementById("recursiveWatch"),
+        trashOnReplace: document.getElementById("trashOnReplace"),
         outputPolicy: document.getElementById("outputPolicy"),
         jpegQuality: document.getElementById("jpegQuality"),
         paused: document.getElementById("paused"),
@@ -165,6 +175,7 @@
           recursive_watch: ui.recursiveWatch.checked,
           output_policy: ui.outputPolicy.value,
           jpeg_quality: Number(ui.jpegQuality.value),
+          trash_on_replace: ui.trashOnReplace.checked,
           paused: ui.paused.checked
         };
       }
@@ -174,6 +185,7 @@
         ui.recursiveWatch.checked = Boolean(config.recursive_watch);
         ui.outputPolicy.value = config.output_policy || "coexist";
         ui.jpegQuality.value = Number(config.jpeg_quality ?? 92);
+        ui.trashOnReplace.checked = Boolean(config.trash_on_replace);
         ui.paused.checked = Boolean(config.paused);
       }
 

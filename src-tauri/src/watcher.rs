@@ -2,6 +2,7 @@ use std::{
     collections::{HashMap, HashSet},
     fs,
     path::{Path, PathBuf},
+    process::Command,
     thread,
     time::{Duration, Instant, SystemTime},
 };
@@ -9,7 +10,7 @@ use std::{
 use crossbeam_channel::{Receiver, Sender};
 use notify::{Event, RecommendedWatcher, RecursiveMode, Watcher};
 
-use crate::config::AppConfig;
+use crate::config::{AppConfig, OutputPolicy};
 
 const STABLE_WINDOW: Duration = Duration::from_millis(300);
 const MAX_STABILIZE_RETRIES: usize = 3;
@@ -83,7 +84,7 @@ fn run_dispatcher(config: AppConfig, stop_rx: Receiver<()>) -> Result<(), String
 
     let (job_tx, job_rx) = crossbeam_channel::unbounded::<PathBuf>();
     let (done_tx, done_rx) = crossbeam_channel::unbounded::<PathBuf>();
-    let worker_handles = spawn_workers(job_rx, done_tx, stop_rx.clone());
+    let worker_handles = spawn_workers(job_rx, done_tx, stop_rx.clone(), config.clone());
 
     let mut last_enqueued: HashMap<PathBuf, Instant> = HashMap::new();
     let mut last_signature: HashMap<PathBuf, FileSignature> = HashMap::new();
@@ -191,15 +192,25 @@ fn spawn_workers(
     job_rx: Receiver<PathBuf>,
     done_tx: Sender<PathBuf>,
     stop_rx: Receiver<()>,
+    config: AppConfig,
 ) -> Vec<thread::JoinHandle<()>> {
     let mut handles = Vec::with_capacity(WORKER_COUNT);
     for worker_id in 0..WORKER_COUNT {
         let worker_job_rx = job_rx.clone();
         let worker_done_tx = done_tx.clone();
         let worker_stop_rx = stop_rx.clone();
+        let worker_config = config.clone();
         let builder = thread::Builder::new().name(format!("watch-worker-{worker_id}"));
         let handle = builder
-            .spawn(move || worker_loop(worker_id, worker_job_rx, worker_done_tx, worker_stop_rx))
+            .spawn(move || {
+                worker_loop(
+                    worker_id,
+                    worker_job_rx,
+                    worker_done_tx,
+                    worker_stop_rx,
+                    worker_config,
+                )
+            })
             .expect("spawn worker thread");
         handles.push(handle);
     }
@@ -211,6 +222,7 @@ fn worker_loop(
     job_rx: Receiver<PathBuf>,
     done_tx: Sender<PathBuf>,
     stop_rx: Receiver<()>,
+    config: AppConfig,
 ) {
     loop {
         if stop_rx.try_recv().is_ok() {
@@ -227,10 +239,22 @@ fn worker_loop(
 
                 match wait_for_stable_file(&path) {
                     Ok(true) => {
-                        log::info!(
-                            "[worker {worker_id}] file is stable and queued for conversion: {}",
-                            path.display()
-                        );
+                        log::info!("[worker {worker_id}] file is stable: {}", path.display());
+                        match convert_heic_file(&path, &config) {
+                            Ok(output_path) => {
+                                log::info!(
+                                    "[worker {worker_id}] converted to jpeg: {} -> {}",
+                                    path.display(),
+                                    output_path.display()
+                                );
+                            }
+                            Err(err) => {
+                                log::error!(
+                                    "[worker {worker_id}] failed converting {}: {err}",
+                                    path.display()
+                                );
+                            }
+                        }
                     }
                     Ok(false) => {
                         log::warn!(
@@ -345,6 +369,122 @@ fn has_jpeg_sibling(path: &Path) -> bool {
         return false;
     };
     parent.join(format!("{stem}.jpg")).exists()
+}
+
+fn convert_heic_file(input_path: &Path, config: &AppConfig) -> Result<PathBuf, String> {
+    let output_path = resolve_output_path(input_path);
+    let tmp_output_path = tmp_output_path_for(&output_path);
+    run_sips_convert(input_path, &tmp_output_path, config.jpeg_quality)?;
+    fs::rename(&tmp_output_path, &output_path).map_err(|err| {
+        format!(
+            "failed to finalize output {}: {err}",
+            output_path.display()
+        )
+    })?;
+
+    if matches!(config.output_policy, OutputPolicy::Replace) && config.trash_on_replace {
+        move_file_to_trash(input_path)?;
+    }
+
+    Ok(output_path)
+}
+
+fn resolve_output_path(input_path: &Path) -> PathBuf {
+    let Some(parent) = input_path.parent() else {
+        return input_path.with_extension("jpg");
+    };
+    let stem = input_path
+        .file_stem()
+        .and_then(|value| value.to_str())
+        .unwrap_or("converted");
+
+    let mut candidate = parent.join(format!("{stem}.jpg"));
+    if !candidate.exists() {
+        return candidate;
+    }
+
+    let mut index = 1usize;
+    loop {
+        candidate = parent.join(format!("{stem} ({index}).jpg"));
+        if !candidate.exists() {
+            return candidate;
+        }
+        index += 1;
+    }
+}
+
+fn tmp_output_path_for(output_path: &Path) -> PathBuf {
+    let file_name = output_path
+        .file_name()
+        .map(|value| value.to_string_lossy().into_owned())
+        .unwrap_or_else(|| "output.jpg".to_string());
+    output_path.with_file_name(format!("{file_name}.tmp"))
+}
+
+fn run_sips_convert(input_path: &Path, output_path: &Path, quality: u8) -> Result<(), String> {
+    let quality_value = quality.to_string();
+    let output = Command::new("sips")
+        .arg("-s")
+        .arg("format")
+        .arg("jpeg")
+        .arg("-s")
+        .arg("formatOptions")
+        .arg(&quality_value)
+        .arg(input_path.as_os_str())
+        .arg("--out")
+        .arg(output_path.as_os_str())
+        .output()
+        .map_err(|err| format!("failed to run sips: {err}"))?;
+
+    if output.status.success() {
+        return Ok(());
+    }
+
+    let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
+    if output_path.exists() {
+        let _ = fs::remove_file(output_path);
+    }
+    Err(format!(
+        "sips exited with status {}: {}",
+        output.status,
+        if stderr.is_empty() {
+            "no stderr output"
+        } else {
+            &stderr
+        }
+    ))
+}
+
+fn move_file_to_trash(path: &Path) -> Result<(), String> {
+    let Some(path_text) = path.to_str() else {
+        return Err("source path is not valid UTF-8".to_string());
+    };
+
+    let output = Command::new("osascript")
+        .arg("-e")
+        .arg("on run argv")
+        .arg("-e")
+        .arg("tell application \"Finder\" to delete POSIX file (item 1 of argv)")
+        .arg("-e")
+        .arg("end run")
+        .arg(path_text)
+        .output()
+        .map_err(|err| format!("failed to run osascript: {err}"))?;
+
+    if output.status.success() {
+        return Ok(());
+    }
+
+    let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
+    Err(format!(
+        "failed to move file to trash (status {}): {}",
+        output.status,
+        if stderr.is_empty() {
+            "no stderr output"
+        } else {
+            &stderr
+        }
+    ))
 }
 
 fn wait_for_stable_file(path: &Path) -> Result<bool, std::io::Error> {
@@ -472,6 +612,23 @@ mod tests {
         assert!(!has_jpeg_sibling(&heic));
         fs::write(&jpg, b"y").expect("write jpg");
         assert!(has_jpeg_sibling(&heic));
+
+        let _ = fs::remove_dir_all(dir);
+    }
+
+    #[test]
+    fn resolve_output_path_uses_increment_suffix_on_collision() {
+        let dir = unique_temp_dir_path("collision");
+        fs::create_dir_all(&dir).expect("create temp dir");
+        let heic = dir.join("IMG_0002.heic");
+        let jpg = dir.join("IMG_0002.jpg");
+        let jpg1 = dir.join("IMG_0002 (1).jpg");
+        fs::write(&heic, b"x").expect("write heic");
+        fs::write(&jpg, b"y").expect("write jpg");
+        fs::write(&jpg1, b"z").expect("write jpg1");
+
+        let resolved = resolve_output_path(&heic);
+        assert_eq!(resolved, dir.join("IMG_0002 (2).jpg"));
 
         let _ = fs::remove_dir_all(dir);
     }
