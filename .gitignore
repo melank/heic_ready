@@ -10,3 +10,8 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+
+# Rust / Tauri build artifacts
+target/
+src-tauri/target/
+src-tauri/.tauri/
