@@ -18,7 +18,12 @@ body {
     radial-gradient(circle at 92% 0%, #d9efe6 0%, rgba(217, 239, 230, 0.25) 40%, transparent 62%),
     var(--bg);
   color: var(--text);
-  font-family: "Avenir Next", "Hiragino Sans", "Segoe UI", sans-serif;
+  font-family: -apple-system, "SF Pro Text", "Hiragino Kaku Gothic ProN", "Yu Gothic UI", sans-serif;
+  font-size: 14px;
+  line-height: 1.4;
+  letter-spacing: 0.002em;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 main {
@@ -47,14 +52,17 @@ main {
 
 h1 {
   margin: 0;
+  font-family: -apple-system, "SF Pro Display", "Avenir Next", sans-serif;
   font-size: 24px;
+  font-weight: 680;
   letter-spacing: 0.02em;
 }
 
 .subtitle {
   margin: 2px 0 0;
   color: var(--muted);
-  font-size: 13px;
+  font-size: 12px;
+  letter-spacing: 0.006em;
 }
 
 .status-pill {
@@ -139,8 +147,9 @@ h1 {
 label {
   display: block;
   margin: 0 0 6px;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 650;
+  letter-spacing: 0.006em;
 }
 
 .field-head {
@@ -189,12 +198,13 @@ input:focus {
 .check {
   display: flex;
   gap: 8px;
-  align-items: center;
+  align-items: flex-start;
   margin-top: 0;
 }
 
 .check input {
   width: auto;
+  margin-top: 2px;
 }
 
 .option-note {
@@ -224,6 +234,12 @@ button {
   background: #edf2ee;
   color: #2f3d33;
   border: 1px solid #d5ddd4;
+}
+
+#addWatchFolderButton {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 10px;
 }
 
 #saveButton {

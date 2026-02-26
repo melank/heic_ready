@@ -192,7 +192,7 @@ pub fn set_paused(paused: bool, state: State<'_, AppState>, app: AppHandle) -> R
 #[tauri::command]
 pub fn pick_watch_folder() -> Result<Option<String>, String> {
     let script = r#"try
-POSIX path of (choose folder with prompt "Select watch folder for heic_ready")
+POSIX path of (choose folder with prompt "Select watch folder for HEIC Ready")
 on error number -128
 return ""
 end try"#;
@@ -235,7 +235,7 @@ pub fn open_recent_logs_window(app: AppHandle) -> Result<(), String> {
         "recent-logs",
         WebviewUrl::App("logs.html".into()),
     )
-    .title("heic_ready recent logs")
+    .title("HEIC Ready recent logs")
     .inner_size(620.0, 420.0)
     .min_inner_size(520.0, 320.0)
     .resizable(true)

@@ -193,7 +193,7 @@ pub fn run() {
             let mut tray_builder = TrayIconBuilder::with_id(TRAY_ID)
                 .menu(&menu)
                 .show_menu_on_left_click(true)
-                .tooltip("heic_ready");
+                .tooltip("HEIC Ready");
 
             if let Some(icon) = app.default_window_icon().cloned() {
                 tray_builder = tray_builder.icon(icon);

@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "heic_ready",
+  "productName": "HEIC Ready",
   "version": "0.1.0",
   "identifier": "com.melank.heic_ready",
   "build": {
@@ -12,7 +12,7 @@
     "withGlobalTauri": true,
     "windows": [
       {
-        "title": "heic_ready",
+        "title": "HEIC Ready",
         "width": 760,
         "height": 540,
         "minWidth": 760,

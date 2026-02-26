@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>heic_ready settings</title>
+    <title>HEIC Ready settings</title>
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
@@ -11,7 +11,7 @@
       <section class="card">
         <div class="topbar">
           <div>
-            <h1>heic_ready</h1>
+            <h1>HEIC Ready</h1>
             <p class="subtitle">Background conversion settings</p>
           </div>
           <span id="status" class="status-pill">Loading...</span>
@@ -38,6 +38,10 @@
         </div>
 
         <div class="group row">
+          <label class="check">
+            <input id="recursiveWatch" type="checkbox" />
+            <span>Recursive watch</span>
+          </label>
           <div>
             <label class="check">
               <input id="replaceMode" type="checkbox" />
@@ -47,10 +51,6 @@
               Requires delete permission on the watch folder and write permission for <code>~/.Trash</code>.
             </p>
           </div>
-          <label class="check">
-            <input id="recursiveWatch" type="checkbox" />
-            <span>Recursive watch</span>
-          </label>
         </div>
 
         <div class="actions">
