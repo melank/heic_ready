@@ -128,17 +128,22 @@ fn tmp_path_for(path: &Path) -> PathBuf {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::sync::atomic::{AtomicU64, Ordering};
     use std::time::{SystemTime, UNIX_EPOCH};
+
+    static TEST_SEQ: AtomicU64 = AtomicU64::new(0);
 
     fn test_root() -> PathBuf {
         let nanos = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .expect("system time")
             .as_nanos();
+        let seq = TEST_SEQ.fetch_add(1, Ordering::Relaxed);
         let path = std::env::temp_dir().join(format!(
-            "heic_ready_config_test_{}_{}",
+            "heic_ready_config_test_{}_{}_{}",
             std::process::id(),
-            nanos
+            nanos,
+            seq
         ));
         fs::create_dir_all(&path).expect("create temp root");
         path

@@ -59,6 +59,12 @@ heic_ready はこの手順を消します。
 
 macOS
 
+## テスト
+
+- 手動E2Eチェックリスト: `docs/e2e-manual-test.md`
+- `git commit` 前テスト: `.githooks/pre-commit` で `cargo test` を実行
+- 初回セットアップ: `./scripts/setup-githooks.sh`
+
 ## コンセプト
 
 heic_ready は画像変換ツールではありません。
