@@ -1,77 +1,126 @@
 # HEIC Ready
 
-AirDropしたら、もう送れる。
+HEIC Ready is a background macOS utility that watches configured folders and converts incoming `*.heic` / `*.heif` files to `*.jpg` automatically.
 
-HEIC Ready は macOS 常駐ユーティリティです。
-HEIC 画像を自動的に “どこでも使える形式” に準備します。
+The app is designed as a tray-first daemon. No foreground workflow is required for normal operation.
 
-ファイルを開く必要はありません。
-変換ボタンもありません。
+## Scope
 
-届いた瞬間、使えます。
+What this project does:
 
-## なぜ必要？
+- Folder-based HEIC/HEIF detection
+- Automatic JPEG generation
+- Optional source replacement (`move to Trash`) or coexist mode
+- Lightweight status/control via tray + settings window
 
-iPhone の写真は HEIC 形式です。
-しかし多くの Web サービスは HEIC を受け付けません。
+What this project intentionally does not do:
 
-よくある流れ：
+- Photo management UI
+- Image editing
+- Cloud upload
+- Web service integration
 
-1. AirDrop
-2. アップロード失敗
-3. 変換サイトを探す
-4. ダウンロードし直す
-5. もう一度添付
+## Runtime Architecture
 
-HEIC Ready はこの手順を消します。
+- Core: Rust
+- UI/tray shell: Tauri
+- File watching: `notify`
+- Decode/encode path: macOS `sips` (OS image stack)
 
-## 何をするアプリ？
+Thread model:
 
-指定したフォルダに HEIC が入ると自動的に JPEG が生成されます。
-ユーザー操作は不要です。
+- Watch dispatcher thread receives file events
+- Debounced paths are queued
+- Worker pool processes conversions (max 2 workers)
 
-## 特徴
+## Conversion Behavior
 
-* 常駐・超軽量
-* ローカル完結（アップロードしない）
-* Finder を開く前に準備完了
-* 元ファイルは保持可能
-* 同名ファイルを壊さない
+- Input extensions: `.heic`, `.heif`
+- Output extension: `.jpg`
+- Atomic output write:
+  1. Write to `*.tmp`
+  2. Rename to final `*.jpg`
+  3. Apply source policy (`coexist` or `replace`)
+- Name collision policy: never overwrite existing JPEG
+  - Example: `IMG_0001.heic` -> `IMG_0001.jpg`
+  - If exists: `IMG_0001 (1).jpg`, `IMG_0001 (2).jpg`, ...
 
-## 使い方
+Stabilization guard (to avoid processing files still being written):
 
-1. 起動（`npm run tauri dev` もしくは `cargo tauri dev`）
-2. メニューバーのトレイアイコンを開く
-3. `Settings` から設定を保存する
-4. `Pause/Resume` で処理状態を切り替える
+- Wait until file size is unchanged for 300ms
+- Retry up to 3 times
+- Skip with reason if stabilization fails
 
-## 設定ファイル
+## Permissions and Safety
 
-- 保存場所: Tauri `app_config_dir` 配下の `heic_ready/config.json`
-- 主な項目:
-  - `watch_folders`
-  - `recursive_watch`
-  - `output_policy` (`coexist` / `replace`)
-  - `jpeg_quality`
-  - `paused`
+- `replace` mode requires writable watch folder and writable `~/.Trash`
+- If permission checks fail while saving config, `replace` falls back to `coexist`
+- Conversion and skip/failure reasons are kept in a recent log buffer (latest 10)
 
-## 対応環境
+## Configuration
 
-macOS
+Stored at:
 
-## テスト
+- `app_config_dir/heic_ready/config.json`
 
-- 手動E2Eチェックリスト: `docs/e2e-manual-test.md`
-- `git commit` 前テスト: `.githooks/pre-commit` で `cargo test` を実行
-- 初回セットアップ: `./scripts/setup-githooks.sh`
+Main fields:
 
-## コンセプト
+- `watch_folders`
+- `recursive_watch`
+- `output_policy` (`coexist` / `replace`)
+- `jpeg_quality` (`0..=100`)
+- `rescan_interval_secs` (`15..=3600`)
+- `paused`
 
-HEIC Ready は画像変換ツールではありません。
+## UI Surfaces
 
-Mac が HEIC を理解できるようにする小さな補助レイヤです。
-変換を意識させないことを目標にしています。
+- Tray menu:
+  - Running/Paused status
+  - Pause/Resume
+  - Settings
+  - Recent Logs
+  - Quit
+- Settings window:
+  - Watch folders
+  - Recursive watch
+  - Replace source HEIC
+  - JPEG quality
+  - Rescan interval
+- Recent Logs window:
+  - Last 10 records (`success` / `failure` / `skip` / `info`)
 
-## ライセンス
+## Development
+
+Requirements:
+
+- macOS
+- Rust toolchain
+- Node.js environment for Tauri frontend workflow
+
+Run in development:
+
+```bash
+npm run tauri dev
+```
+
+or
+
+```bash
+cargo tauri dev
+```
+
+## Testing
+
+- Automated tests run via `cargo test`
+- Pre-commit hook runs tests automatically (`.githooks/pre-commit`)
+- Manual E2E checklist: `docs/e2e-manual-test.md`
+
+Install hooks (first time):
+
+```bash
+./scripts/setup-githooks.sh
+```
+
+## License
 
 MIT
