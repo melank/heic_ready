@@ -283,11 +283,13 @@ fn worker_loop(
                                 push_recent_log(&path, "success", "converted to jpeg");
                             }
                             Err(err) => {
+                                let category = classify_conversion_error(err.as_str());
+                                let detailed = format!("[{category}] {err}");
                                 log::error!(
-                                    "[worker {worker_id}] failed converting {}: {err}",
+                                    "[worker {worker_id}] failed converting {}: {detailed}",
                                     path.display()
                                 );
-                                push_recent_log(&path, "failure", err.as_str());
+                                push_recent_log(&path, "failure", detailed.as_str());
                             }
                         }
                     }
@@ -383,14 +385,27 @@ fn collect_pending_files_impl(path: &Path, recursive: bool, out: &mut Vec<PathBu
 
     for entry in entries.flatten() {
         let entry_path = entry.path();
-        if entry_path.is_dir() {
+        let file_type = match entry.file_type() {
+            Ok(file_type) => file_type,
+            Err(err) => {
+                log::debug!(
+                    "failed to get file type for {}: {err}",
+                    entry_path.display()
+                );
+                continue;
+            }
+        };
+
+        if file_type.is_dir() {
             if recursive {
                 collect_pending_files_impl(&entry_path, true, out);
             }
             continue;
         }
-
-        if !is_target_file(&entry_path) {
+        if !file_type.is_file() {
+            continue;
+        }
+        if !is_target_extension(&entry_path) {
             continue;
         }
         if has_jpeg_sibling(&entry_path) {
@@ -493,6 +508,17 @@ fn run_sips_convert(input_path: &Path, output_path: &Path, quality: u8) -> Resul
             &stderr
         }
     ))
+}
+
+fn classify_conversion_error(err: &str) -> &'static str {
+    let lower = err.to_ascii_lowercase();
+    if lower.contains("permission denied") || lower.contains("operation not permitted") {
+        return "permission";
+    }
+    if lower.contains("sips exited") {
+        return "decode";
+    }
+    "io"
 }
 
 fn move_file_to_trash(path: &Path) -> Result<(), String> {
@@ -645,6 +671,10 @@ fn is_target_file(path: &Path) -> bool {
         return false;
     }
 
+    is_target_extension(path)
+}
+
+fn is_target_extension(path: &Path) -> bool {
     let Some(ext) = path.extension().and_then(|value| value.to_str()) else {
         return false;
     };
@@ -789,6 +819,16 @@ mod tests {
         assert_eq!(effective_rescan_interval_secs(1), 15);
         assert_eq!(effective_rescan_interval_secs(60), 60);
         assert_eq!(effective_rescan_interval_secs(99999), 3600);
+    }
+
+    #[test]
+    fn conversion_error_is_classified() {
+        assert_eq!(classify_conversion_error("Permission denied"), "permission");
+        assert_eq!(
+            classify_conversion_error("sips exited with status 1"),
+            "decode"
+        );
+        assert_eq!(classify_conversion_error("failed to finalize output"), "io");
     }
 
     #[test]

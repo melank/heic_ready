@@ -14,11 +14,13 @@ const ui = {
   recentLogs: document.getElementById("recentLogs"),
   refreshLogsButton: document.getElementById("refreshLogsButton")
 };
+const RECENT_LOG_AUTO_REFRESH_MS = 45000;
 
 let baselineConfig = null;
 let isSaving = false;
 let statusTimer = null;
 let statusFxTimer = null;
+let recentLogTimer = null;
 
 function normalizeConfig(raw) {
   return {
@@ -169,6 +171,18 @@ async function refreshRecentLogs() {
   }
 }
 
+function startRecentLogAutoRefresh() {
+  if (recentLogTimer) {
+    clearInterval(recentLogTimer);
+  }
+  recentLogTimer = setInterval(() => {
+    if (document.visibilityState !== "visible" || isSaving) {
+      return;
+    }
+    refreshRecentLogs();
+  }, RECENT_LOG_AUTO_REFRESH_MS);
+}
+
 async function loadConfig() {
   if (!invoke) {
     setStatus("error", "Tauri API is not available.");
@@ -182,6 +196,7 @@ async function loadConfig() {
     writeConfigToForm(config);
     refreshFormState();
     await refreshRecentLogs();
+    startRecentLogAutoRefresh();
   } catch (error) {
     setStatus("error", `Load failed: ${error}`);
   }
