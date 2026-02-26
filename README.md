@@ -1,5 +1,11 @@
 # HEIC Ready
 
+[![Platform: macOS](https://img.shields.io/badge/Platform-macOS-111111?style=flat-square&logo=apple&logoColor=white)](https://www.apple.com/macos/)
+[![Rust: 1.77+](https://img.shields.io/badge/Rust-1.77%2B-000000?style=flat-square&logo=rust)](https://www.rust-lang.org/)
+[![Tauri: 2.x](https://img.shields.io/badge/Tauri-2.x-24C8D8?style=flat-square&logo=tauri&logoColor=white)](https://tauri.app/)
+[![Image stack: macOS sips](https://img.shields.io/badge/Image%20Stack-macOS%20sips-5B5BD6?style=flat-square)](https://ss64.com/mac/sips.html)
+[![License: MIT](https://img.shields.io/badge/License-MIT-2ea44f?style=flat-square)](./LICENSE)
+
 HEIC Ready is a background macOS utility that watches configured folders and converts incoming `*.heic` / `*.heif` files to `*.jpg` automatically.
 
 The app is designed as a tray-first daemon. No foreground workflow is required for normal operation.
