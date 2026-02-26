@@ -17,10 +17,13 @@ use crate::config::{AppConfig, OutputPolicy};
 const STABLE_WINDOW: Duration = Duration::from_millis(300);
 const MAX_STABILIZE_RETRIES: usize = 3;
 const DEBOUNCE_WINDOW: Duration = Duration::from_millis(400);
+const DUPLICATE_EVENT_SUPPRESS_WINDOW: Duration = Duration::from_secs(2);
 const WORKER_COUNT: usize = 2;
 const RECENT_LOG_LIMIT: usize = 10;
 const MIN_RESCAN_INTERVAL_SECS: u64 = 15;
 const MAX_RESCAN_INTERVAL_SECS: u64 = 60 * 60;
+const TRASH_MOVE_RETRIES: usize = 3;
+const TRASH_RETRY_DELAY: Duration = Duration::from_millis(120);
 
 static RECENT_LOGS: OnceLock<Mutex<VecDeque<RecentLogEntry>>> = OnceLock::new();
 
@@ -44,6 +47,14 @@ pub struct RecentLog {
     pub path: String,
     pub result: String,
     pub reason: String,
+}
+
+enum ConvertOutcome {
+    Success(PathBuf),
+    SuccessWithWarning {
+        output_path: PathBuf,
+        warning: String,
+    },
 }
 
 pub struct WatchService {
@@ -274,13 +285,29 @@ fn worker_loop(
                     Ok(true) => {
                         log::info!("[worker {worker_id}] file is stable: {}", path.display());
                         match convert_heic_file(&path, &config) {
-                            Ok(output_path) => {
+                            Ok(ConvertOutcome::Success(output_path)) => {
                                 log::info!(
                                     "[worker {worker_id}] converted to jpeg: {} -> {}",
                                     path.display(),
                                     output_path.display()
                                 );
                                 push_recent_log(&path, "success", "converted to jpeg");
+                            }
+                            Ok(ConvertOutcome::SuccessWithWarning {
+                                output_path,
+                                warning,
+                            }) => {
+                                log::warn!(
+                                    "[worker {worker_id}] converted with warning {} -> {}: {}",
+                                    path.display(),
+                                    output_path.display(),
+                                    warning
+                                );
+                                push_recent_log(
+                                    &path,
+                                    "success",
+                                    format!("converted with warning: {warning}").as_str(),
+                                );
                             }
                             Err(err) => {
                                 let category = classify_conversion_error(err.as_str());
@@ -331,6 +358,9 @@ fn should_enqueue_path(
 
     if let Some(last_seen) = last_enqueued.get(path) {
         if now.duration_since(*last_seen) < DEBOUNCE_WINDOW {
+            return false;
+        }
+        if has_jpeg_sibling(path) && now.duration_since(*last_seen) < DUPLICATE_EVENT_SUPPRESS_WINDOW {
             return false;
         }
     }
@@ -426,7 +456,7 @@ fn has_jpeg_sibling(path: &Path) -> bool {
     parent.join(format!("{stem}.jpg")).exists()
 }
 
-fn convert_heic_file(input_path: &Path, config: &AppConfig) -> Result<PathBuf, String> {
+fn convert_heic_file(input_path: &Path, config: &AppConfig) -> Result<ConvertOutcome, String> {
     let output_path = resolve_output_path(input_path);
     let tmp_output_path = tmp_output_path_for(&output_path);
     run_sips_convert(input_path, &tmp_output_path, config.jpeg_quality)?;
@@ -438,10 +468,15 @@ fn convert_heic_file(input_path: &Path, config: &AppConfig) -> Result<PathBuf, S
     })?;
 
     if matches!(config.output_policy, OutputPolicy::Replace) {
-        move_file_to_trash(input_path)?;
+        if let Err(err) = move_file_to_trash(input_path) {
+            return Ok(ConvertOutcome::SuccessWithWarning {
+                output_path,
+                warning: format!("replace fallback to coexist: {err}"),
+            });
+        }
     }
 
-    Ok(output_path)
+    Ok(ConvertOutcome::Success(output_path))
 }
 
 fn resolve_output_path(input_path: &Path) -> PathBuf {
@@ -527,17 +562,44 @@ fn move_file_to_trash(path: &Path) -> Result<(), String> {
         .map_err(|err| format!("failed to create trash dir {}: {err}", trash_dir.display()))?;
 
     let destination = unique_destination_path(&trash_dir, path);
-    match fs::rename(path, &destination) {
+    let mut last_err = String::new();
+    for attempt in 1..=TRASH_MOVE_RETRIES {
+        match move_file_to_trash_once(path, &destination) {
+            Ok(()) => return Ok(()),
+            Err(err) => {
+                last_err = err;
+                if attempt < TRASH_MOVE_RETRIES {
+                    thread::sleep(TRASH_RETRY_DELAY);
+                }
+            }
+        }
+    }
+    Err(format!(
+        "failed to move file to trash after {} attempts: {}",
+        TRASH_MOVE_RETRIES, last_err
+    ))
+}
+
+fn move_file_to_trash_once(path: &Path, destination: &Path) -> Result<(), String> {
+    match fs::rename(path, destination) {
         Ok(()) => Ok(()),
         Err(err) if err.raw_os_error() == Some(18) => {
-            fs::copy(path, &destination).map_err(|copy_err| {
+            fs::copy(path, destination).map_err(|copy_err| {
                 format!(
                     "failed to copy file to trash {}: {copy_err}",
                     destination.display()
                 )
             })?;
-            fs::remove_file(path)
-                .map_err(|remove_err| format!("failed to remove source after copy: {remove_err}"))
+            match fs::remove_file(path) {
+                Ok(()) => Ok(()),
+                Err(remove_err) => {
+                    // Recovery: remove copied trash file so source remains authoritative.
+                    let _ = fs::remove_file(destination);
+                    Err(format!(
+                        "failed to remove source after copy; rolled back copied trash file: {remove_err}"
+                    ))
+                }
+            }
         }
         Err(err) => Err(format!(
             "failed to move file to trash {}: {err}",
@@ -734,7 +796,7 @@ mod tests {
         let mut last_signature = HashMap::new();
         let in_flight = HashSet::new();
 
-        last_enqueued.insert(path.clone(), now - Duration::from_secs(2));
+        last_enqueued.insert(path.clone(), now - Duration::from_secs(1));
         last_signature.insert(path.clone(), signature.clone());
 
         assert!(!should_enqueue_path(
@@ -829,6 +891,38 @@ mod tests {
             "decode"
         );
         assert_eq!(classify_conversion_error("failed to finalize output"), "io");
+    }
+
+    #[test]
+    fn duplicate_event_is_suppressed_when_jpeg_exists_shortly_after_enqueue() {
+        let dir = unique_temp_dir_path("suppress");
+        fs::create_dir_all(&dir).expect("create temp dir");
+        let path = dir.join("IMG_3000.heic");
+        let jpg = dir.join("IMG_3000.jpg");
+        fs::write(&path, b"heic").expect("write heic");
+        fs::write(&jpg, b"jpg").expect("write jpg");
+
+        let mut last_enqueued = HashMap::new();
+        let last_signature = HashMap::new();
+        let in_flight = HashSet::new();
+        let now = Instant::now();
+        last_enqueued.insert(path.clone(), now - Duration::from_secs(1));
+        let signature = FileSignature {
+            len: 4,
+            modified: None,
+        };
+
+        assert!(!should_enqueue_path(
+            &path,
+            &signature,
+            now,
+            false,
+            &last_enqueued,
+            &last_signature,
+            &in_flight
+        ));
+
+        let _ = fs::remove_dir_all(dir);
     }
 
     #[test]
