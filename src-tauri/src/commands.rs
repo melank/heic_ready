@@ -7,7 +7,7 @@ use std::{
 };
 
 use serde::{Deserialize, Serialize};
-use tauri::{AppHandle, Emitter, State};
+use tauri::{AppHandle, Emitter, Manager, State, WebviewUrl, WebviewWindowBuilder};
 
 use crate::{
     config::{AppConfig, OutputPolicy},
@@ -216,6 +216,43 @@ end try"#;
         return Ok(None);
     };
     Ok(Some(normalized.to_string_lossy().into_owned()))
+}
+
+#[tauri::command]
+pub fn open_recent_logs_window(app: AppHandle) -> Result<(), String> {
+    if let Some(window) = app.get_webview_window("recent-logs") {
+        window
+            .show()
+            .map_err(|err| format!("failed to show recent logs window: {err}"))?;
+        window
+            .set_focus()
+            .map_err(|err| format!("failed to focus recent logs window: {err}"))?;
+        return Ok(());
+    }
+
+    let window = WebviewWindowBuilder::new(
+        &app,
+        "recent-logs",
+        WebviewUrl::App("logs.html".into()),
+    )
+    .title("heic_ready recent logs")
+    .inner_size(620.0, 420.0)
+    .min_inner_size(520.0, 320.0)
+    .resizable(true)
+    .build()
+    .map_err(|err| format!("failed to create recent logs window: {err}"))?;
+
+    let logs_window = window.clone();
+    window.on_window_event(move |event| {
+        if let tauri::WindowEvent::CloseRequested { api, .. } = event {
+            api.prevent_close();
+            if let Err(err) = logs_window.hide() {
+                log::error!("failed to hide recent logs window: {err}");
+            }
+        }
+    });
+
+    Ok(())
 }
 
 fn store_config_to_dto(state: State<'_, AppState>) -> Result<AppConfigDto, String> {

@@ -4,7 +4,10 @@ mod watcher;
 
 use std::sync::Mutex;
 
-use commands::{get_config, get_recent_logs, pick_watch_folder, set_paused, update_config};
+use commands::{
+    get_config, get_recent_logs, open_recent_logs_window, pick_watch_folder, set_paused,
+    update_config,
+};
 use config::{AppConfig, ConfigStore};
 use tauri::{
     menu::{Menu, MenuItem, PredefinedMenuItem},
@@ -17,6 +20,7 @@ const TRAY_ID: &str = "main-tray";
 const MENU_STATUS_ID: &str = "status";
 const MENU_TOGGLE_ID: &str = "pause_resume";
 const MENU_SETTINGS_ID: &str = "settings";
+const MENU_RECENT_LOGS_ID: &str = "recent_logs";
 const MENU_QUIT_ID: &str = "quit";
 pub(crate) const EVENT_PAUSED_CHANGED: &str = "paused-changed";
 
@@ -36,10 +40,20 @@ fn build_tray_menu(app: &AppHandle, paused: bool) -> tauri::Result<Menu<Wry>> {
     let status = MenuItem::with_id(app, MENU_STATUS_ID, status_text, false, None::<&str>)?;
     let toggle = MenuItem::with_id(app, MENU_TOGGLE_ID, toggle_text, true, None::<&str>)?;
     let settings = MenuItem::with_id(app, MENU_SETTINGS_ID, "Settings", true, None::<&str>)?;
+    let recent_logs = MenuItem::with_id(
+        app,
+        MENU_RECENT_LOGS_ID,
+        "Recent Logs",
+        true,
+        None::<&str>,
+    )?;
     let quit = MenuItem::with_id(app, MENU_QUIT_ID, "Quit", true, None::<&str>)?;
     let separator = PredefinedMenuItem::separator(app)?;
 
-    Menu::with_items(app, &[&status, &separator, &toggle, &settings, &quit])
+    Menu::with_items(
+        app,
+        &[&status, &separator, &toggle, &settings, &recent_logs, &quit],
+    )
 }
 
 fn show_settings_window(app: &AppHandle) {
@@ -131,6 +145,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             get_config,
             get_recent_logs,
+            open_recent_logs_window,
             pick_watch_folder,
             update_config,
             set_paused
@@ -200,6 +215,11 @@ pub fn run() {
                         set_paused_and_refresh_ui(app, paused);
                     }
                     MENU_SETTINGS_ID => show_settings_window(app),
+                    MENU_RECENT_LOGS_ID => {
+                        if let Err(err) = open_recent_logs_window(app.clone()) {
+                            log::error!("failed to open recent logs window: {err}");
+                        }
+                    }
                     MENU_QUIT_ID => app.exit(0),
                     _ => {}
                 })

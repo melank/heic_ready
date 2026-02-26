@@ -14,11 +14,11 @@
       {
         "title": "heic_ready",
         "width": 760,
-        "height": 620,
+        "height": 540,
         "minWidth": 760,
-        "minHeight": 620,
+        "minHeight": 540,
         "maxWidth": 760,
-        "maxHeight": 620,
+        "maxHeight": 540,
         "visible": false,
         "resizable": false,
         "fullscreen": false

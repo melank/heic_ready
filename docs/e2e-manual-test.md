@@ -23,6 +23,7 @@
 1. `Replace source HEIC (move to Trash)` を OFF
 2. `Save`
 3. 監視フォルダへ `IMG_A.heic` を配置
+4. トレイメニューで `Recent Logs` を押してログウィンドウを開く
 
 期待:
 - `IMG_A.jpg` が生成される
@@ -34,6 +35,7 @@
 1. `Replace source HEIC (move to Trash)` を ON
 2. `Save`
 3. 監視フォルダへ `IMG_B.heic` を配置
+4. トレイメニューで `Recent Logs` を押してログウィンドウを開く
 
 期待:
 - `Replace source HEIC (move to Trash)` の下に権限注釈が表示される
@@ -103,6 +105,16 @@
 - 重複追加されない（同一パスは1行のみ）
 - 末尾 `/` の有無で重複しない（正規化される）
 
+### 9. Recent Logs 別画面導線
+
+1. トレイメニューで `Recent Logs` を押す
+2. いったんウィンドウを閉じる
+3. 再度トレイメニューで `Recent Logs` を押す
+
+期待:
+- 既存ウィンドウがある場合は再利用され、重複して増えない
+- `Refresh` でログ一覧が更新される
+
 ## 実施記録テンプレート
 
 ```text
@@ -118,6 +130,7 @@ Tester:
 [6] 入力バリデーション: PASS / FAIL
 [7] 同名衝突: PASS / FAIL
 [8] 監視フォルダ追加UI: PASS / FAIL
+[9] Recent Logs 別画面導線: PASS / FAIL
 
 Notes:
 ```
