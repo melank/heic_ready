@@ -29,7 +29,7 @@ fn build_tray_menu(app: &AppHandle, paused: bool) -> tauri::Result<Menu<Wry>> {
     let status_text = if paused {
         "🔴 Paused"
     } else {
-        "🟢 Running"
+        "🟢 Ready"
     };
     let toggle_text = if paused { "Resume" } else { "Pause" };
 
