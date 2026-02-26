@@ -136,7 +136,9 @@
     </main>
 
     <script>
-      const invoke = window.__TAURI__?.core?.invoke;
+      const invoke =
+        window.__TAURI__?.core?.invoke ||
+        window.__TAURI_INTERNALS__?.invoke?.bind(window.__TAURI_INTERNALS__);
       const listen = window.__TAURI__?.event?.listen;
 
       const ui = {
