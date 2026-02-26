@@ -117,9 +117,18 @@ pub fn run() {
       }
 
       let menu = build_tray_menu(&app.handle(), paused)?;
-      TrayIconBuilder::with_id(TRAY_ID)
+      let mut tray_builder = TrayIconBuilder::with_id(TRAY_ID)
         .menu(&menu)
-        .show_menu_on_left_click(false)
+        .show_menu_on_left_click(true)
+        .tooltip("heic_ready");
+
+      if let Some(icon) = app.default_window_icon().cloned() {
+        tray_builder = tray_builder.icon(icon);
+      } else {
+        log::warn!("default window icon is unavailable; tray icon may be hidden");
+      }
+
+      tray_builder
         .on_menu_event(|app, event| match event.id().as_ref() {
           MENU_TOGGLE_ID => {
             let state: State<'_, AppState> = app.state();
