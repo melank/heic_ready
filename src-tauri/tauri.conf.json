@@ -13,10 +13,14 @@
     "windows": [
       {
         "title": "heic_ready",
-        "width": 800,
-        "height": 600,
+        "width": 760,
+        "height": 490,
+        "minWidth": 760,
+        "minHeight": 490,
+        "maxWidth": 760,
+        "maxHeight": 490,
         "visible": false,
-        "resizable": true,
+        "resizable": false,
         "fullscreen": false
       }
     ],

@@ -97,7 +97,7 @@ fn run_dispatcher(config: AppConfig, stop_rx: Receiver<()>) -> Result<(), String
 
     let (job_tx, job_rx) = crossbeam_channel::unbounded::<PathBuf>();
     let (done_tx, done_rx) = crossbeam_channel::unbounded::<PathBuf>();
-    let worker_handles = spawn_workers(job_rx, done_tx, stop_rx.clone(), config.clone());
+    let worker_handles = spawn_workers(job_rx, done_tx, config.clone());
 
     let mut last_enqueued: HashMap<PathBuf, Instant> = HashMap::new();
     let mut last_signature: HashMap<PathBuf, FileSignature> = HashMap::new();
@@ -220,14 +220,12 @@ fn enqueue_conversion_job(
 fn spawn_workers(
     job_rx: Receiver<PathBuf>,
     done_tx: Sender<PathBuf>,
-    stop_rx: Receiver<()>,
     config: AppConfig,
 ) -> Vec<thread::JoinHandle<()>> {
     let mut handles = Vec::with_capacity(WORKER_COUNT);
     for worker_id in 0..WORKER_COUNT {
         let worker_job_rx = job_rx.clone();
         let worker_done_tx = done_tx.clone();
-        let worker_stop_rx = stop_rx.clone();
         let worker_config = config.clone();
         let builder = thread::Builder::new().name(format!("watch-worker-{worker_id}"));
         let handle = builder
@@ -236,7 +234,6 @@ fn spawn_workers(
                     worker_id,
                     worker_job_rx,
                     worker_done_tx,
-                    worker_stop_rx,
                     worker_config,
                 )
             })
@@ -250,14 +247,9 @@ fn worker_loop(
     worker_id: usize,
     job_rx: Receiver<PathBuf>,
     done_tx: Sender<PathBuf>,
-    stop_rx: Receiver<()>,
     config: AppConfig,
 ) {
     loop {
-        if stop_rx.try_recv().is_ok() {
-            break;
-        }
-
         match job_rx.recv_timeout(Duration::from_millis(200)) {
             Ok(path) => {
                 if is_lock_file(&path) {
@@ -419,7 +411,7 @@ fn convert_heic_file(input_path: &Path, config: &AppConfig) -> Result<PathBuf, S
         )
     })?;
 
-    if matches!(config.output_policy, OutputPolicy::Replace) && config.trash_on_replace {
+    if matches!(config.output_policy, OutputPolicy::Replace) {
         move_file_to_trash(input_path)?;
     }
 
@@ -493,35 +485,65 @@ fn run_sips_convert(input_path: &Path, output_path: &Path, quality: u8) -> Resul
 }
 
 fn move_file_to_trash(path: &Path) -> Result<(), String> {
-    let Some(path_text) = path.to_str() else {
-        return Err("source path is not valid UTF-8".to_string());
-    };
+    let trash_dir = user_trash_dir()?;
+    fs::create_dir_all(&trash_dir)
+        .map_err(|err| format!("failed to create trash dir {}: {err}", trash_dir.display()))?;
 
-    let output = Command::new("osascript")
-        .arg("-e")
-        .arg("on run argv")
-        .arg("-e")
-        .arg("tell application \"Finder\" to delete POSIX file (item 1 of argv)")
-        .arg("-e")
-        .arg("end run")
-        .arg(path_text)
-        .output()
-        .map_err(|err| format!("failed to run osascript: {err}"))?;
+    let destination = unique_destination_path(&trash_dir, path);
+    match fs::rename(path, &destination) {
+        Ok(()) => Ok(()),
+        Err(err) if err.raw_os_error() == Some(18) => {
+            fs::copy(path, &destination).map_err(|copy_err| {
+                format!(
+                    "failed to copy file to trash {}: {copy_err}",
+                    destination.display()
+                )
+            })?;
+            fs::remove_file(path)
+                .map_err(|remove_err| format!("failed to remove source after copy: {remove_err}"))
+        }
+        Err(err) => Err(format!(
+            "failed to move file to trash {}: {err}",
+            destination.display()
+        )),
+    }
+}
 
-    if output.status.success() {
-        return Ok(());
+fn user_trash_dir() -> Result<PathBuf, String> {
+    let home = std::env::var_os("HOME").ok_or_else(|| "HOME is not set".to_string())?;
+    Ok(PathBuf::from(home).join(".Trash"))
+}
+
+fn unique_destination_path(dir: &Path, source_path: &Path) -> PathBuf {
+    let file_name = source_path
+        .file_name()
+        .map(|name| name.to_string_lossy().into_owned())
+        .unwrap_or_else(|| "untitled".to_string());
+    let mut candidate = dir.join(&file_name);
+    if !candidate.exists() {
+        return candidate;
     }
 
-    let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
-    Err(format!(
-        "failed to move file to trash (status {}): {}",
-        output.status,
-        if stderr.is_empty() {
-            "no stderr output"
-        } else {
-            &stderr
+    let stem = source_path
+        .file_stem()
+        .map(|name| name.to_string_lossy().into_owned())
+        .unwrap_or_else(|| "untitled".to_string());
+    let ext = source_path
+        .extension()
+        .map(|name| name.to_string_lossy().into_owned());
+
+    let mut index = 1usize;
+    loop {
+        let file_name = match &ext {
+            Some(ext) => format!("{stem} ({index}).{ext}"),
+            None => format!("{stem} ({index})"),
+        };
+        candidate = dir.join(file_name);
+        if !candidate.exists() {
+            return candidate;
         }
-    ))
+        index += 1;
+    }
 }
 
 fn push_recent_log(path: &Path, result: &'static str, reason: &str) {
@@ -713,6 +735,20 @@ mod tests {
         }
 
         assert_eq!(recent_logs_len(), 10);
+    }
+
+    #[test]
+    fn unique_destination_path_adds_suffix_on_collision() {
+        let dir = unique_temp_dir_path("trash_collision");
+        fs::create_dir_all(&dir).expect("create temp dir");
+        let source = dir.join("IMG_1000.HEIC");
+        fs::write(&source, b"x").expect("write source");
+        fs::write(dir.join("IMG_1000.HEIC"), b"x").expect("write collision");
+
+        let candidate = unique_destination_path(&dir, &source);
+        assert_eq!(candidate, dir.join("IMG_1000 (1).HEIC"));
+
+        let _ = fs::remove_dir_all(dir);
     }
 
     fn unique_temp_file_path(name: &str) -> PathBuf {

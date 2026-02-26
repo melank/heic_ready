@@ -21,8 +21,6 @@ pub struct AppConfig {
     pub recursive_watch: bool,
     pub output_policy: OutputPolicy,
     pub jpeg_quality: u8,
-    #[serde(default)]
-    pub trash_on_replace: bool,
     pub paused: bool,
 }
 
@@ -33,7 +31,6 @@ impl Default for AppConfig {
             recursive_watch: false,
             output_policy: OutputPolicy::Coexist,
             jpeg_quality: 92,
-            trash_on_replace: false,
             paused: false,
         }
     }
@@ -161,7 +158,6 @@ mod tests {
             recursive_watch: true,
             output_policy: OutputPolicy::Replace,
             jpeg_quality: 88,
-            trash_on_replace: true,
             paused: true,
         };
         fs::write(
@@ -188,7 +184,6 @@ mod tests {
         assert_eq!(store.config(), &AppConfig::default());
         let content = fs::read_to_string(store.config_path()).expect("read rewritten config");
         assert!(content.contains("\"output_policy\": \"coexist\""));
-        assert!(content.contains("\"trash_on_replace\": false"));
         let _ = fs::remove_dir_all(root);
     }
 

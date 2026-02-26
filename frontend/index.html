@@ -7,43 +7,127 @@
     <style>
       :root {
         color-scheme: light;
-        --bg: #f4f4f1;
+        --bg: #ecefe8;
         --surface: #ffffff;
-        --text: #1f2328;
-        --muted: #59636e;
+        --text: #152018;
+        --muted: #5d6a61;
         --accent: #0f766e;
-        --border: #d8dee4;
+        --accent-soft: #d6f3ef;
+        --border: #d5ddd4;
+        --danger: #c0362c;
+        --warning: #8a6a24;
       }
       body {
         margin: 0;
-        background: radial-gradient(circle at 15% 10%, #fffdf4, var(--bg));
+        background:
+          radial-gradient(circle at 8% 12%, #fffce8 0%, rgba(255, 252, 232, 0.4) 34%, transparent 58%),
+          radial-gradient(circle at 92% 0%, #d9efe6 0%, rgba(217, 239, 230, 0.25) 40%, transparent 62%),
+          var(--bg);
         color: var(--text);
-        font-family: "SF Pro Text", "Segoe UI", sans-serif;
+        font-family: "Avenir Next", "Hiragino Sans", "Segoe UI", sans-serif;
       }
       main {
-        max-width: 680px;
-        margin: 40px auto;
-        padding: 24px;
+        max-width: 760px;
+        margin: 10px auto;
+        padding: 8px 14px;
+        box-sizing: border-box;
       }
       .card {
         background: var(--surface);
         border: 1px solid var(--border);
-        border-radius: 12px;
-        padding: 20px;
-        box-shadow: 0 6px 20px rgba(16, 24, 40, 0.06);
+        border-radius: 16px;
+        box-sizing: border-box;
+        padding: 14px 16px 12px;
+        box-shadow: 0 14px 30px rgba(20, 38, 24, 0.08);
+      }
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 8px;
       }
       h1 {
-        margin: 0 0 8px;
-        font-size: 24px;
-      }
-      p {
         margin: 0;
+        font-size: 24px;
+        letter-spacing: 0.02em;
+      }
+      .subtitle {
+        margin: 2px 0 0;
         color: var(--muted);
+        font-size: 13px;
+      }
+      .status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        padding: 7px 12px;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--muted);
+        background: #f5f8f4;
+        min-height: 16px;
+      }
+      .status-pill::before {
+        content: "";
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #9ba9a0;
+      }
+      .status-pill.saving {
+        color: #175f57;
+        background: #eaf8f5;
+        border-color: #b6e7df;
+      }
+      .status-pill.saving::before {
+        background: var(--accent);
+        animation: pulse 1s infinite ease-in-out;
+      }
+      .status-pill.success {
+        color: #16554e;
+        background: #eaf8f5;
+        border-color: #b6e7df;
+      }
+      .status-pill.success::before {
+        background: #1f8f84;
+      }
+      .status-pill.dirty {
+        color: #6b5523;
+        background: #fff9ea;
+        border-color: #e7d8ac;
+      }
+      .status-pill.dirty::before {
+        background: var(--warning);
+      }
+      .status-pill.error {
+        color: #7f211a;
+        background: #fcedeb;
+        border-color: #efc1bc;
+      }
+      .status-pill.error::before {
+        background: var(--danger);
+      }
+      .group {
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid #edf1ed;
+      }
+      .group:first-of-type {
+        margin-top: 2px;
       }
       label {
         display: block;
-        margin: 16px 0 6px;
-        font-weight: 600;
+        margin: 0 0 6px;
+        font-size: 14px;
+        font-weight: 650;
+      }
+      .hint {
+        margin: 0 0 6px;
+        color: var(--muted);
+        font-size: 12px;
       }
       textarea,
       select,
@@ -51,41 +135,83 @@
         width: 100%;
         box-sizing: border-box;
         border: 1px solid var(--border);
-        border-radius: 8px;
-        padding: 10px 12px;
+        border-radius: 9px;
+        padding: 8px 10px;
         font: inherit;
+        color: inherit;
+        background: #fff;
+      }
+      textarea:focus,
+      select:focus,
+      input:focus {
+        outline: 2px solid #bce6de;
+        border-color: #8acfc3;
       }
       .row {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 12px;
+        gap: 10px;
+      }
+      .check {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        margin-top: 0;
+      }
+      .check input {
+        width: auto;
       }
       .actions {
-        margin-top: 16px;
+        margin-top: 12px;
         display: flex;
         align-items: center;
-        gap: 12px;
+        gap: 10px;
       }
       button {
         border: 0;
-        border-radius: 8px;
-        padding: 10px 14px;
-        background: var(--accent);
-        color: white;
-        font-weight: 600;
+        border-radius: 10px;
+        padding: 8px 14px;
+        font: inherit;
+        font-weight: 700;
         cursor: pointer;
       }
-      #status {
-        color: var(--muted);
-        font-size: 14px;
+      #saveButton {
+        background: var(--accent);
+        color: #fff;
+      }
+      #saveButton:disabled {
+        opacity: 0.5;
+        cursor: default;
+      }
+      @keyframes pulse {
+        0% {
+          transform: scale(1);
+          opacity: 0.8;
+        }
+        50% {
+          transform: scale(1.25);
+          opacity: 0.45;
+        }
+        100% {
+          transform: scale(1);
+          opacity: 0.8;
+        }
       }
       @media (max-width: 640px) {
         main {
-          margin: 20px auto;
-          padding: 14px;
+          margin: 8px auto;
+          padding: 6px 8px;
+        }
+        .card {
+          padding: 10px 12px 10px;
+        }
+        .topbar {
+          flex-direction: column;
+          align-items: flex-start;
         }
         .row {
           grid-template-columns: 1fr;
+          gap: 8px;
         }
       }
     </style>
@@ -93,53 +219,44 @@
   <body>
     <main>
       <section class="card">
-        <h1>heic_ready</h1>
-        <p>Settings (M0 minimal)</p>
-
-        <label for="watchFolders">Watch folders (one path per line)</label>
-        <textarea id="watchFolders" rows="5" placeholder="/Users/you/Downloads"></textarea>
-
-        <div class="row">
+        <div class="topbar">
           <div>
-            <label for="outputPolicy">Output policy</label>
-            <select id="outputPolicy">
-              <option value="coexist">coexist</option>
-              <option value="replace">replace</option>
-            </select>
+            <h1>heic_ready</h1>
+            <p class="subtitle">Background conversion settings</p>
           </div>
+          <span id="status" class="status-pill">Loading...</span>
+        </div>
+
+        <div class="group">
+          <label for="watchFolders">Watch folders</label>
+          <p class="hint">One absolute path per line.</p>
+          <textarea id="watchFolders" rows="3" placeholder="/Users/you/Downloads"></textarea>
+        </div>
+
+        <div class="group row">
           <div>
-            <label for="jpegQuality">JPEG quality (0-100)</label>
+            <label for="jpegQuality">JPEG quality</label>
             <input id="jpegQuality" type="number" min="0" max="100" />
           </div>
+          <label class="check">
+            <input id="replaceMode" type="checkbox" />
+            <span>Replace source HEIC (move to Trash)</span>
+          </label>
         </div>
 
-        <div class="row">
-          <div>
-            <label>
-              <input id="recursiveWatch" type="checkbox" />
-              Recursive watch
-            </label>
-          </div>
-          <div>
-            <label>
-              <input id="trashOnReplace" type="checkbox" />
-              Move source to Trash on replace
-            </label>
-          </div>
-        </div>
-
-        <div class="row">
-          <div>
-            <label>
-              <input id="paused" type="checkbox" disabled />
-              Paused (tray controlled)
-            </label>
-          </div>
+        <div class="group row">
+          <label class="check">
+            <input id="recursiveWatch" type="checkbox" />
+            <span>Recursive watch</span>
+          </label>
+          <label class="check">
+            <input id="paused" type="checkbox" disabled />
+            <span>Paused (tray controlled)</span>
+          </label>
         </div>
 
         <div class="actions">
           <button id="saveButton" type="button">Save</button>
-          <span id="status">Loading...</span>
         </div>
       </section>
     </main>
@@ -153,78 +270,186 @@
       const ui = {
         watchFolders: document.getElementById("watchFolders"),
         recursiveWatch: document.getElementById("recursiveWatch"),
-        trashOnReplace: document.getElementById("trashOnReplace"),
-        outputPolicy: document.getElementById("outputPolicy"),
+        replaceMode: document.getElementById("replaceMode"),
         jpegQuality: document.getElementById("jpegQuality"),
         paused: document.getElementById("paused"),
         saveButton: document.getElementById("saveButton"),
         status: document.getElementById("status")
       };
 
-      function setStatus(text, isError = false) {
+      let baselineConfig = null;
+      let isSaving = false;
+      let statusTimer = null;
+
+      function wait(ms) {
+        return new Promise((resolve) => setTimeout(resolve, ms));
+      }
+
+      function normalizeConfig(raw) {
+        return {
+          watch_folders: (raw.watch_folders || []).map((value) => String(value).trim()).filter((value) => value.length > 0),
+          recursive_watch: Boolean(raw.recursive_watch),
+          output_policy: raw.output_policy || "coexist",
+          jpeg_quality: Number(raw.jpeg_quality ?? 92),
+          paused: Boolean(raw.paused)
+        };
+      }
+
+      function setStatus(type, text, autoClearMs = 0) {
+        ui.status.className = `status-pill ${type}`.trim();
         ui.status.textContent = text;
-        ui.status.style.color = isError ? "#b42318" : "#59636e";
+        if (statusTimer) {
+          clearTimeout(statusTimer);
+          statusTimer = null;
+        }
+        if (autoClearMs > 0) {
+          statusTimer = setTimeout(() => {
+            if (isSaving) {
+              return;
+            }
+            if (isDirty()) {
+              setStatus("dirty", "Unsaved changes");
+            } else {
+              setStatus("", "Ready");
+            }
+          }, autoClearMs);
+        }
       }
 
       function readConfigFromForm() {
-        return {
-          watch_folders: ui.watchFolders.value
-            .split("\n")
-            .map((value) => value.trim())
-            .filter((value) => value.length > 0),
+        return normalizeConfig({
+          watch_folders: ui.watchFolders.value.split("\n"),
           recursive_watch: ui.recursiveWatch.checked,
-          output_policy: ui.outputPolicy.value,
+          output_policy: ui.replaceMode.checked ? "replace" : "coexist",
           jpeg_quality: Number(ui.jpegQuality.value),
-          trash_on_replace: ui.trashOnReplace.checked,
           paused: ui.paused.checked
-        };
+        });
       }
 
       function writeConfigToForm(config) {
         ui.watchFolders.value = (config.watch_folders || []).join("\n");
         ui.recursiveWatch.checked = Boolean(config.recursive_watch);
-        ui.outputPolicy.value = config.output_policy || "coexist";
+        ui.replaceMode.checked = (config.output_policy || "coexist") === "replace";
         ui.jpegQuality.value = Number(config.jpeg_quality ?? 92);
-        ui.trashOnReplace.checked = Boolean(config.trash_on_replace);
         ui.paused.checked = Boolean(config.paused);
+      }
+
+      function isDirty() {
+        if (!baselineConfig) {
+          return false;
+        }
+        return JSON.stringify(readConfigFromForm()) !== JSON.stringify(baselineConfig);
+      }
+
+      function refreshFormState() {
+        const dirty = isDirty();
+        ui.saveButton.disabled = isSaving || !dirty;
+
+        if (isSaving) {
+          setStatus("saving", "Saving...");
+          return;
+        }
+
+        if (dirty) {
+          setStatus("dirty", "Unsaved changes");
+        } else if (!ui.status.classList.contains("error") && !ui.status.classList.contains("success")) {
+          setStatus("", "Ready");
+        }
+      }
+
+      function handleFormEdited() {
+        refreshFormState();
+      }
+
+      function validateConfig(config) {
+        return Number.isFinite(config.jpeg_quality) && config.jpeg_quality >= 0 && config.jpeg_quality <= 100;
       }
 
       async function loadConfig() {
         if (!invoke) {
-          setStatus("Tauri API is not available.", true);
+          setStatus("error", "Tauri API is not available.");
           return;
         }
 
+        setStatus("", "Loading...");
         try {
-          const config = await invoke("get_config");
+          const config = normalizeConfig(await invoke("get_config"));
+          baselineConfig = config;
           writeConfigToForm(config);
-          setStatus("Loaded");
+          refreshFormState();
         } catch (error) {
-          setStatus(`Load failed: ${error}`, true);
+          setStatus("error", `Load failed: ${error}`);
         }
       }
 
       async function saveConfig() {
+        if (!invoke || isSaving) {
+          return;
+        }
+
+        const config = readConfigFromForm();
+        if (!validateConfig(config)) {
+          setStatus("error", "jpeg_quality must be in range 0-100", 3500);
+          return;
+        }
+
+        isSaving = true;
+        refreshFormState();
+
+        let savingShownAt = 0;
+        const savingDelay = setTimeout(() => {
+          savingShownAt = Date.now();
+          setStatus("saving", "Saving...");
+        }, 180);
+
         try {
-          const config = readConfigFromForm();
-          if (!Number.isFinite(config.jpeg_quality) || config.jpeg_quality < 0 || config.jpeg_quality > 100) {
-            setStatus("jpeg_quality must be in range 0-100", true);
-            return;
-          }
           await invoke("update_config", { config });
-          setStatus("Saved");
+          clearTimeout(savingDelay);
+
+          if (savingShownAt > 0) {
+            const visibleMs = Date.now() - savingShownAt;
+            if (visibleMs < 280) {
+              await wait(280 - visibleMs);
+            }
+          }
+
+          baselineConfig = config;
+          setStatus("success", "Saved", 2000);
         } catch (error) {
-          setStatus(`Save failed: ${error}`, true);
+          clearTimeout(savingDelay);
+          setStatus("error", `Save failed: ${error}`, 5000);
+        } finally {
+          isSaving = false;
+          refreshFormState();
         }
       }
 
       if (listen) {
         listen("paused-changed", (event) => {
-          ui.paused.checked = Boolean(event.payload);
+          const paused = Boolean(event.payload);
+          ui.paused.checked = paused;
+          if (baselineConfig) {
+            baselineConfig = {
+              ...baselineConfig,
+              paused
+            };
+          }
+          refreshFormState();
         });
       }
 
+      [
+        ui.watchFolders,
+        ui.recursiveWatch,
+        ui.replaceMode,
+        ui.jpegQuality
+      ].forEach((element) => {
+        element.addEventListener("input", handleFormEdited);
+        element.addEventListener("change", handleFormEdited);
+      });
+
       ui.saveButton.addEventListener("click", saveConfig);
+
       loadConfig();
     </script>
   </body>

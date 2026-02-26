@@ -26,7 +26,11 @@ pub(crate) struct AppState {
 }
 
 fn build_tray_menu(app: &AppHandle, paused: bool) -> tauri::Result<Menu<Wry>> {
-    let status_text = if paused { "Paused" } else { "Running" };
+    let status_text = if paused {
+        "🔴 Paused"
+    } else {
+        "🟢 Running"
+    };
     let toggle_text = if paused { "Resume" } else { "Pause" };
 
     let status = MenuItem::with_id(app, MENU_STATUS_ID, status_text, false, None::<&str>)?;

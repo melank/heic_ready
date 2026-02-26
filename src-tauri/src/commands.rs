@@ -21,8 +21,6 @@ pub struct AppConfigDto {
     pub recursive_watch: bool,
     pub output_policy: OutputPolicyDto,
     pub jpeg_quality: u8,
-    #[serde(default)]
-    pub trash_on_replace: bool,
     pub paused: bool,
 }
 
@@ -55,7 +53,6 @@ impl From<AppConfig> for AppConfigDto {
             recursive_watch: value.recursive_watch,
             output_policy: value.output_policy.into(),
             jpeg_quality: value.jpeg_quality,
-            trash_on_replace: value.trash_on_replace,
             paused: value.paused,
         }
     }
@@ -81,7 +78,6 @@ impl TryFrom<AppConfigDto> for AppConfig {
             recursive_watch: value.recursive_watch,
             output_policy: value.output_policy.into(),
             jpeg_quality: value.jpeg_quality,
-            trash_on_replace: value.trash_on_replace,
             paused: value.paused,
         })
     }
