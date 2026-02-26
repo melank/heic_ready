@@ -5,6 +5,7 @@ const listen = window.__TAURI__?.event?.listen;
 
 const ui = {
   watchFolders: document.getElementById("watchFolders"),
+  addWatchFolderButton: document.getElementById("addWatchFolderButton"),
   recursiveWatch: document.getElementById("recursiveWatch"),
   replaceMode: document.getElementById("replaceMode"),
   jpegQuality: document.getElementById("jpegQuality"),
@@ -22,9 +23,34 @@ let statusTimer = null;
 let statusFxTimer = null;
 let recentLogTimer = null;
 
+function normalizeWatchFolderValue(value) {
+  let path = String(value).trim();
+  if (!path) {
+    return "";
+  }
+  if (path.length > 1) {
+    path = path.replace(/\/+$/g, "");
+  }
+  return path;
+}
+
+function normalizeWatchFolderList(values) {
+  const seen = new Set();
+  const folders = [];
+  for (const value of values) {
+    const path = normalizeWatchFolderValue(value);
+    if (!path || seen.has(path)) {
+      continue;
+    }
+    seen.add(path);
+    folders.push(path);
+  }
+  return folders;
+}
+
 function normalizeConfig(raw) {
   return {
-    watch_folders: (raw.watch_folders || []).map((value) => String(value).trim()).filter((value) => value.length > 0),
+    watch_folders: normalizeWatchFolderList(raw.watch_folders || []),
     recursive_watch: Boolean(raw.recursive_watch),
     output_policy: raw.output_policy || "coexist",
     jpeg_quality: Number(raw.jpeg_quality ?? 92),
@@ -120,6 +146,7 @@ function handleFormEdited() {
 
 function validateConfig(config) {
   return (
+    config.watch_folders.every((path) => path.startsWith("/")) &&
     Number.isFinite(config.jpeg_quality) &&
     config.jpeg_quality >= 0 &&
     config.jpeg_quality <= 100 &&
@@ -127,6 +154,26 @@ function validateConfig(config) {
     config.rescan_interval_secs >= 15 &&
     config.rescan_interval_secs <= 3600
   );
+}
+
+async function addWatchFolder() {
+  if (!invoke || isSaving) {
+    return;
+  }
+  try {
+    const picked = await invoke("pick_watch_folder");
+    if (!picked) {
+      return;
+    }
+    const merged = normalizeWatchFolderList([
+      ...ui.watchFolders.value.split("\n"),
+      String(picked)
+    ]);
+    ui.watchFolders.value = merged.join("\n");
+    refreshFormState();
+  } catch (error) {
+    setStatus("error", `Folder pick failed: ${error}`, 5000);
+  }
 }
 
 function formatLogTime(unixMs) {
@@ -209,7 +256,7 @@ async function saveConfig() {
 
   const config = readConfigFromForm();
   if (!validateConfig(config)) {
-    setStatus("error", "jpeg_quality: 0-100, rescan_interval_secs: 15-3600", 4000);
+    setStatus("error", "watch_folders: absolute paths only\njpeg_quality: 0-100\nrescan_interval_secs: 15-3600", 4000);
     return;
   }
 
@@ -217,10 +264,16 @@ async function saveConfig() {
   refreshFormState();
 
   try {
-    await invoke("update_config", { config });
+    const result = await invoke("update_config", { config });
+    const actual = normalizeConfig(result?.config ?? config);
+    baselineConfig = actual;
+    writeConfigToForm(actual);
 
-    baselineConfig = config;
-    setStatus("saved", "Saved", 2000);
+    if (result?.warning) {
+      setStatus("error", String(result.warning), 5000);
+    } else {
+      setStatus("saved", "Saved", 2000);
+    }
     await refreshRecentLogs();
   } catch (error) {
     setStatus("error", `Save failed: ${error}`, 5000);
@@ -255,6 +308,7 @@ if (listen) {
 });
 
 ui.saveButton.addEventListener("click", saveConfig);
+ui.addWatchFolderButton.addEventListener("click", addWatchFolder);
 ui.refreshLogsButton.addEventListener("click", refreshRecentLogs);
 
 loadConfig();

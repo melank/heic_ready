@@ -71,6 +71,7 @@ h1 {
   min-height: 16px;
   opacity: 1;
   transition: opacity 260ms ease;
+  white-space: pre-line;
 }
 
 .status-pill.is-fading {
@@ -140,6 +141,17 @@ label {
   margin: 0 0 6px;
   font-size: 14px;
   font-weight: 650;
+}
+
+.field-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.field-head label {
+  margin: 0;
 }
 
 .hint {
