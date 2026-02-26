@@ -27,9 +27,7 @@ heic_ready はこの手順を消します。
 
 ## 何をするアプリ？
 
-指定したフォルダに HEIC が入ると
-自動的に JPEG が生成されます。
-
+指定したフォルダに HEIC が入ると自動的に JPEG が生成されます。
 ユーザー操作は不要です。
 
 ## 特徴
@@ -42,11 +40,20 @@ heic_ready はこの手順を消します。
 
 ## 使い方
 
-1. 起動
-2. 監視フォルダを選択
-3. 以降なにもしない
+1. 起動（`npm run tauri dev` もしくは `cargo tauri dev`）
+2. メニューバーのトレイアイコンを開く
+3. `Settings` から設定を保存する
+4. `Pause/Resume` で処理状態を切り替える
 
-AirDrop → そのまま添付できます
+## 設定ファイル
+
+- 保存場所: Tauri `app_config_dir` 配下の `heic_ready/config.json`
+- 主な項目:
+  - `watch_folders`
+  - `recursive_watch`
+  - `output_policy` (`coexist` / `replace`)
+  - `jpeg_quality`
+  - `paused`
 
 ## 対応環境
 
@@ -56,9 +63,7 @@ macOS
 
 heic_ready は画像変換ツールではありません。
 
-Mac が HEIC を理解できるようにする
-小さな補助レイヤです。
-
+Mac が HEIC を理解できるようにする小さな補助レイヤです。
 変換を意識させないことを目標にしています。
 
 ## ライセンス
