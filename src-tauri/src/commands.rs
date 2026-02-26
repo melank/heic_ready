@@ -158,6 +158,10 @@ pub fn update_config(
     app.emit(EVENT_PAUSED_CHANGED, paused)
         .map_err(|err| format!("failed to emit pause event: {err}"))?;
 
+    if warning.is_some() {
+        watcher::push_recent_info("replace unavailable; fallback to coexist");
+    }
+
     let result_config = store_config_to_dto(state)?;
     Ok(UpdateConfigResult {
         config: result_config,

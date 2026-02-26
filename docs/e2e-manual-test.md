@@ -14,6 +14,7 @@
 
 - 1件でも期待結果を満たさない場合は `FAIL`
 - `FAIL` 時は `Recent logs` とターミナルログ（`app_lib::watcher`）を保存する
+- `Recent logs` には `SUCCESS/FAILURE/SKIP` に加えて状態通知の `INFO` が記録される場合がある
 
 ## ケース
 
@@ -35,6 +36,7 @@
 3. 監視フォルダへ `IMG_B.heic` を配置
 
 期待:
+- `Replace source HEIC (move to Trash)` の下に権限注釈が表示される
 - `IMG_B.jpg` が生成される
 - 元 `IMG_B.heic` は監視フォルダから消える
 - `~/.Trash` に元ファイルが移動される

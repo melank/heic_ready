@@ -114,6 +114,7 @@ fn run_dispatcher(config: AppConfig, stop_rx: Receiver<()>) -> Result<(), String
             .watch(dir, recursive_mode)
             .map_err(|err| format!("failed to watch {}: {err}", dir.display()))?;
         log::info!("watching folder: {}", dir.display());
+        push_recent_log(dir, "info", "watch started");
     }
 
     let (job_tx, job_rx) = crossbeam_channel::unbounded::<PathBuf>();
@@ -645,7 +646,15 @@ fn unique_destination_path(dir: &Path, source_path: &Path) -> PathBuf {
     }
 }
 
+pub fn push_recent_info(reason: &str) {
+    push_recent_log_text("system".to_string(), "info", reason);
+}
+
 fn push_recent_log(path: &Path, result: &'static str, reason: &str) {
+    push_recent_log_text(path.display().to_string(), result, reason);
+}
+
+fn push_recent_log_text(path: String, result: &'static str, reason: &str) {
     let logs = RECENT_LOGS.get_or_init(|| Mutex::new(VecDeque::with_capacity(RECENT_LOG_LIMIT)));
     let mut guard = match logs.lock() {
         Ok(guard) => guard,
@@ -663,7 +672,7 @@ fn push_recent_log(path: &Path, result: &'static str, reason: &str) {
             .duration_since(SystemTime::UNIX_EPOCH)
             .map(|value| value.as_millis())
             .unwrap_or(0),
-        path: path.display().to_string(),
+        path,
         result,
         reason: reason.to_string(),
     });

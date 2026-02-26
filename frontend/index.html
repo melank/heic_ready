@@ -38,10 +38,15 @@
         </div>
 
         <div class="group row">
-          <label class="check">
-            <input id="replaceMode" type="checkbox" />
-            <span>Replace source HEIC (move to Trash)</span>
-          </label>
+          <div>
+            <label class="check">
+              <input id="replaceMode" type="checkbox" />
+              <span>Replace source HEIC (move to Trash)</span>
+            </label>
+            <p class="option-note">
+              Requires delete permission on the watch folder and write permission for <code>~/.Trash</code>.
+            </p>
+          </div>
           <label class="check">
             <input id="recursiveWatch" type="checkbox" />
             <span>Recursive watch</span>
