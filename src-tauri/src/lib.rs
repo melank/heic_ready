@@ -5,12 +5,12 @@ mod watcher;
 use std::sync::Mutex;
 
 use commands::{
-    get_config, get_recent_logs, open_recent_logs_window, pick_watch_folder, set_paused,
+    get_config, get_recent_logs, open_recent_logs_window, pick_watch_folder, set_paused, LocaleDto,
     update_config,
 };
-use config::{AppConfig, ConfigStore};
+use config::{AppConfig, AppLocale, ConfigStore};
 use tauri::{
-    menu::{Menu, MenuItem, PredefinedMenuItem},
+    menu::{Menu, MenuItem, PredefinedMenuItem, Submenu},
     tray::TrayIconBuilder,
     AppHandle, Emitter, Manager, State, Wry,
 };
@@ -19,40 +19,124 @@ use watcher::WatchService;
 const TRAY_ID: &str = "main-tray";
 const MENU_STATUS_ID: &str = "status";
 const MENU_TOGGLE_ID: &str = "pause_resume";
-const MENU_SETTINGS_ID: &str = "settings";
+const MENU_SETTINGS_GROUP_ID: &str = "settings_group";
+const MENU_OPEN_SETTINGS_ID: &str = "open_settings";
+const MENU_LANGUAGE_GROUP_ID: &str = "language_group";
 const MENU_RECENT_LOGS_ID: &str = "recent_logs";
+const MENU_LANG_EN_ID: &str = "lang_en";
+const MENU_LANG_JA_ID: &str = "lang_ja";
 const MENU_QUIT_ID: &str = "quit";
 pub(crate) const EVENT_PAUSED_CHANGED: &str = "paused-changed";
+pub(crate) const EVENT_LOCALE_CHANGED: &str = "locale-changed";
 
 pub(crate) struct AppState {
     pub(crate) config_store: Mutex<ConfigStore>,
     pub(crate) watch_service: Mutex<Option<WatchService>>,
 }
 
-fn build_tray_menu(app: &AppHandle, paused: bool) -> tauri::Result<Menu<Wry>> {
-    let status_text = if paused {
-        "🔴 Paused"
-    } else {
-        "🟢 Ready"
+fn build_tray_menu(app: &AppHandle, paused: bool, locale: AppLocale) -> tauri::Result<Menu<Wry>> {
+    let status_text = match (paused, locale) {
+        (true, AppLocale::En) => "🔴 Paused",
+        (true, AppLocale::Ja) => "🔴 Paused",
+        (false, AppLocale::En) => "🟢 Ready",
+        (false, AppLocale::Ja) => "🟢 Ready",
     };
-    let toggle_text = if paused { "Resume" } else { "Pause" };
+    let toggle_text = match (paused, locale) {
+        (true, AppLocale::En) => "Resume",
+        (true, AppLocale::Ja) => "再開",
+        (false, AppLocale::En) => "Pause",
+        (false, AppLocale::Ja) => "一時停止",
+    };
+    let settings_text = match locale {
+        AppLocale::En => "Settings",
+        AppLocale::Ja => "設定",
+    };
+    let open_settings_text = match locale {
+        AppLocale::En => "Open Settings",
+        AppLocale::Ja => "設定を開く",
+    };
+    let recent_logs_text = match locale {
+        AppLocale::En => "Recent Logs",
+        AppLocale::Ja => "最近のログ",
+    };
+    let language_text = match locale {
+        AppLocale::En => "Language",
+        AppLocale::Ja => "言語",
+    };
+    let lang_en_text = match locale {
+        AppLocale::En => "✓ Language: English",
+        AppLocale::Ja => "✓ 言語: English",
+    };
+    let lang_ja_text = match locale {
+        AppLocale::En => "Language: Japanese",
+        AppLocale::Ja => "言語: 日本語",
+    };
+    let lang_en_alt_text = match locale {
+        AppLocale::En => "Language: English",
+        AppLocale::Ja => "言語: English",
+    };
+    let lang_ja_alt_text = match locale {
+        AppLocale::En => "✓ Language: Japanese",
+        AppLocale::Ja => "✓ 言語: 日本語",
+    };
+    let quit_text = match locale {
+        AppLocale::En => "Quit",
+        AppLocale::Ja => "終了",
+    };
 
     let status = MenuItem::with_id(app, MENU_STATUS_ID, status_text, false, None::<&str>)?;
     let toggle = MenuItem::with_id(app, MENU_TOGGLE_ID, toggle_text, true, None::<&str>)?;
-    let settings = MenuItem::with_id(app, MENU_SETTINGS_ID, "Settings", true, None::<&str>)?;
-    let recent_logs = MenuItem::with_id(
+    let open_settings = MenuItem::with_id(
         app,
-        MENU_RECENT_LOGS_ID,
-        "Recent Logs",
+        MENU_OPEN_SETTINGS_ID,
+        open_settings_text,
         true,
         None::<&str>,
     )?;
-    let quit = MenuItem::with_id(app, MENU_QUIT_ID, "Quit", true, None::<&str>)?;
+    let recent_logs =
+        MenuItem::with_id(app, MENU_RECENT_LOGS_ID, recent_logs_text, true, None::<&str>)?;
+    let lang_en = MenuItem::with_id(
+        app,
+        MENU_LANG_EN_ID,
+        if matches!(locale, AppLocale::En) {
+            lang_en_text
+        } else {
+            lang_en_alt_text
+        },
+        true,
+        None::<&str>,
+    )?;
+    let lang_ja = MenuItem::with_id(
+        app,
+        MENU_LANG_JA_ID,
+        if matches!(locale, AppLocale::Ja) {
+            lang_ja_alt_text
+        } else {
+            lang_ja_text
+        },
+        true,
+        None::<&str>,
+    )?;
+    let quit = MenuItem::with_id(app, MENU_QUIT_ID, quit_text, true, None::<&str>)?;
     let separator = PredefinedMenuItem::separator(app)?;
+    let language_menu = Submenu::with_id_and_items(
+        app,
+        MENU_LANGUAGE_GROUP_ID,
+        language_text,
+        true,
+        &[&lang_en, &lang_ja],
+    )?;
+    let settings_menu = Submenu::with_id_and_items(
+        app,
+        MENU_SETTINGS_GROUP_ID,
+        settings_text,
+        true,
+        &[&open_settings, &language_menu],
+    )?;
 
     Menu::with_items(
         app,
-        &[&status, &separator, &toggle, &settings, &recent_logs, &quit],
+        &[&status, &separator, &toggle, &settings_menu, &recent_logs, &quit],
     )
 }
 
@@ -79,6 +163,7 @@ fn set_paused_and_refresh_ui(app: &AppHandle, paused: bool) {
     };
 
     config_store.set_paused(paused);
+    let locale = config_store.config().locale;
     if let Err(err) = config_store.save() {
         log::error!("failed to save config: {err}");
         return;
@@ -90,7 +175,7 @@ fn set_paused_and_refresh_ui(app: &AppHandle, paused: bool) {
     }
 
     if let Some(tray) = app.tray_by_id(TRAY_ID) {
-        match build_tray_menu(app, paused) {
+        match build_tray_menu(app, paused, locale) {
             Ok(menu) => {
                 if let Err(err) = tray.set_menu(Some(menu)) {
                     log::error!("failed to update tray menu: {err}");
@@ -104,6 +189,46 @@ fn set_paused_and_refresh_ui(app: &AppHandle, paused: bool) {
 
     if let Err(err) = app.emit(EVENT_PAUSED_CHANGED, paused) {
         log::error!("failed to emit paused change event: {err}");
+    }
+}
+
+fn set_locale_and_refresh_ui(app: &AppHandle, locale: AppLocale) {
+    let state: State<'_, AppState> = app.state();
+    let mut config_store = match state.config_store.lock() {
+        Ok(guard) => guard,
+        Err(err) => {
+            log::error!("failed to lock app state: {err}");
+            return;
+        }
+    };
+
+    if config_store.config().locale == locale {
+        return;
+    }
+
+    config_store.set_locale(locale);
+    let paused = config_store.config().paused;
+    if let Err(err) = config_store.save() {
+        log::error!("failed to save config: {err}");
+        return;
+    }
+    drop(config_store);
+
+    if let Some(tray) = app.tray_by_id(TRAY_ID) {
+        match build_tray_menu(app, paused, locale) {
+            Ok(menu) => {
+                if let Err(err) = tray.set_menu(Some(menu)) {
+                    log::error!("failed to update tray menu: {err}");
+                }
+            }
+            Err(err) => {
+                log::error!("failed to rebuild tray menu: {err}");
+            }
+        }
+    }
+
+    if let Err(err) = app.emit(EVENT_LOCALE_CHANGED, LocaleDto::from(locale)) {
+        log::error!("failed to emit locale change event: {err}");
     }
 }
 
@@ -162,6 +287,7 @@ pub fn run() {
             let config_dir = app.path().app_config_dir()?;
             let config_store = ConfigStore::load_or_init(&config_dir)?;
             let paused = config_store.config().paused;
+            let locale = config_store.config().locale;
             log::info!(
                 "config loaded from {}",
                 config_store.config_path().display()
@@ -189,7 +315,7 @@ pub fn run() {
                 });
             }
 
-            let menu = build_tray_menu(&app.handle(), paused)?;
+            let menu = build_tray_menu(&app.handle(), paused, locale)?;
             let mut tray_builder = TrayIconBuilder::with_id(TRAY_ID)
                 .menu(&menu)
                 .show_menu_on_left_click(true)
@@ -214,12 +340,14 @@ pub fn run() {
                         };
                         set_paused_and_refresh_ui(app, paused);
                     }
-                    MENU_SETTINGS_ID => show_settings_window(app),
+                    MENU_OPEN_SETTINGS_ID => show_settings_window(app),
                     MENU_RECENT_LOGS_ID => {
                         if let Err(err) = open_recent_logs_window(app.clone()) {
                             log::error!("failed to open recent logs window: {err}");
                         }
                     }
+                    MENU_LANG_EN_ID => set_locale_and_refresh_ui(app, AppLocale::En),
+                    MENU_LANG_JA_ID => set_locale_and_refresh_ui(app, AppLocale::Ja),
                     MENU_QUIT_ID => app.exit(0),
                     _ => {}
                 })

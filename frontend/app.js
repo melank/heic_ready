@@ -11,13 +11,52 @@ const ui = {
   jpegQuality: document.getElementById("jpegQuality"),
   rescanIntervalSecs: document.getElementById("rescanIntervalSecs"),
   saveButton: document.getElementById("saveButton"),
-  status: document.getElementById("status")
+  status: document.getElementById("status"),
+  appTitle: document.getElementById("appTitle"),
+  appSubtitle: document.getElementById("appSubtitle"),
+  watchFoldersLabel: document.getElementById("watchFoldersLabel"),
+  watchFoldersHint: document.getElementById("watchFoldersHint"),
+  jpegQualityLabel: document.getElementById("jpegQualityLabel"),
+  rescanIntervalLabel: document.getElementById("rescanIntervalLabel"),
+  recursiveWatchLabel: document.getElementById("recursiveWatchLabel"),
+  replaceModeLabel: document.getElementById("replaceModeLabel"),
+  replaceModeNote: document.getElementById("replaceModeNote")
 };
+
+const I18N = window.HEIC_READY_I18N?.settings || {};
 
 let baselineConfig = null;
 let isSaving = false;
 let statusTimer = null;
 let statusFxTimer = null;
+let locale = "en";
+
+function normalizeLocale(value) {
+  return value === "ja" ? "ja" : "en";
+}
+
+function t(key) {
+  return I18N[locale]?.[key] ?? I18N.en[key] ?? key;
+}
+
+function tr(template, vars = {}) {
+  return String(template).replace(/\{(\w+)\}/g, (_, key) => String(vars[key] ?? ""));
+}
+
+function applyStaticText() {
+  document.title = t("pageTitle");
+  ui.appTitle.textContent = t("appTitle");
+  ui.appSubtitle.textContent = t("appSubtitle");
+  ui.watchFoldersLabel.textContent = t("watchFoldersLabel");
+  ui.addWatchFolderButton.textContent = t("addFolder");
+  ui.watchFoldersHint.textContent = t("watchFoldersHint");
+  ui.jpegQualityLabel.textContent = t("jpegQualityLabel");
+  ui.rescanIntervalLabel.textContent = t("rescanIntervalLabel");
+  ui.recursiveWatchLabel.textContent = t("recursiveWatchLabel");
+  ui.replaceModeLabel.textContent = t("replaceModeLabel");
+  ui.replaceModeNote.innerHTML = t("replaceModeNote");
+  ui.saveButton.textContent = t("saveButton");
+}
 
 function normalizeWatchFolderValue(value) {
   let path = String(value).trim();
@@ -51,7 +90,8 @@ function normalizeConfig(raw) {
     output_policy: raw.output_policy || "coexist",
     jpeg_quality: Number(raw.jpeg_quality ?? 92),
     rescan_interval_secs: Number(raw.rescan_interval_secs ?? 60),
-    paused: Boolean(raw.paused)
+    paused: Boolean(raw.paused),
+    locale: normalizeLocale(raw.locale)
   };
 }
 
@@ -78,12 +118,14 @@ function setStatus(type, text, autoClearMs = 0) {
 }
 
 function pausedIdleStatus() {
-  return baselineConfig?.paused ? { type: "paused", text: "Paused" } : { type: "ready", text: "Ready" };
+  return baselineConfig?.paused
+    ? { type: "paused", text: t("statusPaused") }
+    : { type: "ready", text: t("statusReady") };
 }
 
 function applyIdleStatus(dirty, withFade = false) {
   if (dirty) {
-    setStatus("dirty", "Unsaved changes");
+    setStatus("dirty", t("statusDirty"));
     return;
   }
   const idle = pausedIdleStatus();
@@ -107,7 +149,8 @@ function readConfigFromForm() {
     output_policy: ui.replaceMode.checked ? "replace" : "coexist",
     jpeg_quality: Number(ui.jpegQuality.value),
     rescan_interval_secs: Number(ui.rescanIntervalSecs.value),
-    paused: baselineConfig?.paused ?? false
+    paused: baselineConfig?.paused ?? false,
+    locale: baselineConfig?.locale ?? locale
   });
 }
 
@@ -161,31 +204,30 @@ async function addWatchFolder() {
     if (!picked) {
       return;
     }
-    const merged = normalizeWatchFolderList([
-      ...ui.watchFolders.value.split("\n"),
-      String(picked)
-    ]);
+    const merged = normalizeWatchFolderList([...ui.watchFolders.value.split("\n"), String(picked)]);
     ui.watchFolders.value = merged.join("\n");
     refreshFormState();
   } catch (error) {
-    setStatus("error", `Folder pick failed: ${error}`, 5000);
+    setStatus("error", tr(t("folderPickFailed"), { error }), 5000);
   }
 }
 
 async function loadConfig() {
   if (!invoke) {
-    setStatus("error", "Tauri API is not available.");
+    setStatus("error", t("tauriUnavailable"));
     return;
   }
 
-    setStatus("ready", "Loading...");
+  setStatus("ready", t("statusLoading"));
   try {
     const config = normalizeConfig(await invoke("get_config"));
+    locale = config.locale;
+    applyStaticText();
     baselineConfig = config;
     writeConfigToForm(config);
     refreshFormState();
   } catch (error) {
-    setStatus("error", `Load failed: ${error}`);
+    setStatus("error", tr(t("loadFailed"), { error }));
   }
 }
 
@@ -196,7 +238,7 @@ async function saveConfig() {
 
   const config = readConfigFromForm();
   if (!validateConfig(config)) {
-    setStatus("error", "watch_folders: absolute paths only\njpeg_quality: 0-100\nrescan_interval_secs: 15-3600", 4000);
+    setStatus("error", t("validateMessage"), 4000);
     return;
   }
 
@@ -206,16 +248,18 @@ async function saveConfig() {
   try {
     const result = await invoke("update_config", { config });
     const actual = normalizeConfig(result?.config ?? config);
+    locale = actual.locale;
+    applyStaticText();
     baselineConfig = actual;
     writeConfigToForm(actual);
 
     if (result?.warning) {
       setStatus("error", String(result.warning), 5000);
     } else {
-      setStatus("saved", "Saved", 2000);
+      setStatus("saved", t("statusSaved"), 2000);
     }
   } catch (error) {
-    setStatus("error", `Save failed: ${error}`, 5000);
+    setStatus("error", tr(t("saveFailed"), { error }), 5000);
   } finally {
     isSaving = false;
     refreshFormState();
@@ -229,6 +273,19 @@ if (listen) {
       baselineConfig = {
         ...baselineConfig,
         paused
+      };
+    }
+    refreshFormState();
+  });
+
+  listen("locale-changed", (event) => {
+    const next = normalizeLocale(event.payload);
+    locale = next;
+    applyStaticText();
+    if (baselineConfig) {
+      baselineConfig = {
+        ...baselineConfig,
+        locale: next
       };
     }
     refreshFormState();
@@ -249,4 +306,5 @@ if (listen) {
 ui.saveButton.addEventListener("click", saveConfig);
 ui.addWatchFolderButton.addEventListener("click", addWatchFolder);
 
+applyStaticText();
 loadConfig();

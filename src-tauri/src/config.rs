@@ -15,6 +15,13 @@ pub enum OutputPolicy {
     Replace,
 }
 
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "lowercase")]
+pub enum AppLocale {
+    En,
+    Ja,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct AppConfig {
     pub watch_folders: Vec<PathBuf>,
@@ -24,6 +31,8 @@ pub struct AppConfig {
     #[serde(default = "default_rescan_interval_secs")]
     pub rescan_interval_secs: u64,
     pub paused: bool,
+    #[serde(default = "default_locale")]
+    pub locale: AppLocale,
 }
 
 impl Default for AppConfig {
@@ -35,12 +44,17 @@ impl Default for AppConfig {
             jpeg_quality: 92,
             rescan_interval_secs: default_rescan_interval_secs(),
             paused: false,
+            locale: default_locale(),
         }
     }
 }
 
 const fn default_rescan_interval_secs() -> u64 {
     60
+}
+
+const fn default_locale() -> AppLocale {
+    AppLocale::En
 }
 
 pub struct ConfigStore {
@@ -91,6 +105,10 @@ impl ConfigStore {
 
     pub fn set_paused(&mut self, paused: bool) {
         self.config.paused = paused;
+    }
+
+    pub fn set_locale(&mut self, locale: AppLocale) {
+        self.config.locale = locale;
     }
 
     pub fn save(&mut self) -> io::Result<()> {
@@ -172,6 +190,7 @@ mod tests {
             jpeg_quality: 88,
             rescan_interval_secs: 120,
             paused: true,
+            locale: AppLocale::Ja,
         };
         fs::write(
             &path,
@@ -198,6 +217,7 @@ mod tests {
         let content = fs::read_to_string(store.config_path()).expect("read rewritten config");
         assert!(content.contains("\"output_policy\": \"coexist\""));
         assert!(content.contains("\"rescan_interval_secs\": 60"));
+        assert!(content.contains("\"locale\": \"en\""));
         let _ = fs::remove_dir_all(root);
     }
 

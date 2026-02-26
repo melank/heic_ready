@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>HEIC Ready settings</title>
+    <title id="pageTitle">HEIC Ready settings</title>
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
@@ -11,28 +11,28 @@
       <section class="card">
         <div class="topbar">
           <div>
-            <h1>HEIC Ready</h1>
-            <p class="subtitle">Background conversion settings</p>
+            <h1 id="appTitle">HEIC Ready</h1>
+            <p id="appSubtitle" class="subtitle">Background conversion settings</p>
           </div>
           <span id="status" class="status-pill">Loading...</span>
         </div>
 
         <div class="group">
           <div class="field-head">
-            <label for="watchFolders">Watch folders</label>
+            <label id="watchFoldersLabel" for="watchFolders">Watch folders</label>
             <button id="addWatchFolderButton" type="button" class="subtle">Add folder</button>
           </div>
-          <p class="hint">One absolute path per line.</p>
+          <p id="watchFoldersHint" class="hint">One absolute path per line.</p>
           <textarea id="watchFolders" rows="3" placeholder="/Users/you/Downloads"></textarea>
         </div>
 
         <div class="group row">
           <div>
-            <label for="jpegQuality">JPEG quality</label>
+            <label id="jpegQualityLabel" for="jpegQuality">JPEG quality</label>
             <input id="jpegQuality" type="number" min="0" max="100" />
           </div>
           <div>
-            <label for="rescanIntervalSecs">Rescan interval (sec)</label>
+            <label id="rescanIntervalLabel" for="rescanIntervalSecs">Rescan interval (sec)</label>
             <input id="rescanIntervalSecs" type="number" min="15" max="3600" step="1" />
           </div>
         </div>
@@ -40,15 +40,16 @@
         <div class="group row">
           <label class="check">
             <input id="recursiveWatch" type="checkbox" />
-            <span>Recursive watch</span>
+            <span id="recursiveWatchLabel">Recursive watch</span>
           </label>
           <div>
             <label class="check">
               <input id="replaceMode" type="checkbox" />
-              <span>Replace source HEIC (move to Trash)</span>
+              <span id="replaceModeLabel">Replace source HEIC (move to Trash)</span>
             </label>
-            <p class="option-note">
-              Requires delete permission on the watch folder and write permission for <code>~/.Trash</code>.
+            <p id="replaceModeNote" class="option-note">
+              Requires delete permission on the watch folder and write permission for
+              <code>~/.Trash</code>.
             </p>
           </div>
         </div>
@@ -59,6 +60,7 @@
       </section>
     </main>
 
+    <script src="./i18n.js"></script>
     <script src="./app.js"></script>
   </body>
 </html>

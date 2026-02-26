@@ -10,9 +10,9 @@ use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Emitter, Manager, State, WebviewUrl, WebviewWindowBuilder};
 
 use crate::{
-    config::{AppConfig, OutputPolicy},
+    config::{AppConfig, AppLocale, OutputPolicy},
     watcher,
-    restart_watch_service, AppState, EVENT_PAUSED_CHANGED,
+    restart_watch_service, AppState, EVENT_LOCALE_CHANGED, EVENT_PAUSED_CHANGED,
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -20,6 +20,13 @@ use crate::{
 pub enum OutputPolicyDto {
     Coexist,
     Replace,
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum LocaleDto {
+    En,
+    Ja,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -30,6 +37,7 @@ pub struct AppConfigDto {
     pub jpeg_quality: u8,
     pub rescan_interval_secs: u64,
     pub paused: bool,
+    pub locale: LocaleDto,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -56,6 +64,24 @@ impl From<OutputPolicyDto> for OutputPolicy {
     }
 }
 
+impl From<AppLocale> for LocaleDto {
+    fn from(value: AppLocale) -> Self {
+        match value {
+            AppLocale::En => Self::En,
+            AppLocale::Ja => Self::Ja,
+        }
+    }
+}
+
+impl From<LocaleDto> for AppLocale {
+    fn from(value: LocaleDto) -> Self {
+        match value {
+            LocaleDto::En => Self::En,
+            LocaleDto::Ja => Self::Ja,
+        }
+    }
+}
+
 impl From<AppConfig> for AppConfigDto {
     fn from(value: AppConfig) -> Self {
         Self {
@@ -69,6 +95,7 @@ impl From<AppConfig> for AppConfigDto {
             jpeg_quality: value.jpeg_quality,
             rescan_interval_secs: value.rescan_interval_secs,
             paused: value.paused,
+            locale: value.locale.into(),
         }
     }
 }
@@ -102,6 +129,7 @@ impl TryFrom<AppConfigDto> for AppConfig {
             jpeg_quality: value.jpeg_quality,
             rescan_interval_secs: value.rescan_interval_secs,
             paused: value.paused,
+            locale: value.locale.into(),
         })
     }
 }
@@ -152,11 +180,14 @@ pub fn update_config(
         .save()
         .map_err(|err| format!("failed to save config: {err}"))?;
     let paused = store.config().paused;
+    let locale = store.config().locale;
     drop(store);
 
     restart_watch_service(&app)?;
     app.emit(EVENT_PAUSED_CHANGED, paused)
         .map_err(|err| format!("failed to emit pause event: {err}"))?;
+    app.emit(EVENT_LOCALE_CHANGED, LocaleDto::from(locale))
+        .map_err(|err| format!("failed to emit locale event: {err}"))?;
 
     if warning.is_some() {
         watcher::push_recent_info("replace unavailable; fallback to coexist");
@@ -220,10 +251,16 @@ end try"#;
 
 #[tauri::command]
 pub fn open_recent_logs_window(app: AppHandle) -> Result<(), String> {
+    let locale = read_locale(&app)?;
+    let title = recent_logs_window_title(locale);
+
     if let Some(window) = app.get_webview_window("recent-logs") {
         window
             .show()
             .map_err(|err| format!("failed to show recent logs window: {err}"))?;
+        window
+            .set_title(title)
+            .map_err(|err| format!("failed to set recent logs title: {err}"))?;
         window
             .set_focus()
             .map_err(|err| format!("failed to focus recent logs window: {err}"))?;
@@ -235,7 +272,7 @@ pub fn open_recent_logs_window(app: AppHandle) -> Result<(), String> {
         "recent-logs",
         WebviewUrl::App("logs.html".into()),
     )
-    .title("HEIC Ready recent logs")
+    .title(title)
     .inner_size(620.0, 420.0)
     .min_inner_size(520.0, 320.0)
     .resizable(true)
@@ -253,6 +290,22 @@ pub fn open_recent_logs_window(app: AppHandle) -> Result<(), String> {
     });
 
     Ok(())
+}
+
+fn read_locale(app: &AppHandle) -> Result<AppLocale, String> {
+    let state: State<'_, AppState> = app.state();
+    let store = state
+        .config_store
+        .lock()
+        .map_err(|err| format!("failed to lock config store: {err}"))?;
+    Ok(store.config().locale)
+}
+
+fn recent_logs_window_title(locale: AppLocale) -> &'static str {
+    match locale {
+        AppLocale::En => "HEIC Ready recent logs",
+        AppLocale::Ja => "HEIC Ready 最近のログ",
+    }
 }
 
 fn store_config_to_dto(state: State<'_, AppState>) -> Result<AppConfigDto, String> {
@@ -334,6 +387,7 @@ mod tests {
             jpeg_quality: 92,
             rescan_interval_secs: 60,
             paused: false,
+            locale: AppLocale::En,
         };
 
         let (updated, warning) = apply_replace_permission_policy(config);
@@ -350,6 +404,7 @@ mod tests {
             jpeg_quality: 92,
             rescan_interval_secs: 60,
             paused: false,
+            locale: AppLocale::En,
         };
 
         let (updated, warning) = apply_replace_permission_policy(config.clone());
