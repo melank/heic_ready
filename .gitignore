@@ -17,5 +17,5 @@ src-tauri/target/
 src-tauri/.tauri/
 
 # Local release artifacts
-release/
-releases/
+/release/
+/releases/
