@@ -1,0 +1,184 @@
+:root {
+  --bg: #f5f1e8;
+  --ink: #141510;
+  --muted: #4f5646;
+  --panel: #fffcf2;
+  --line: #d9d0bb;
+  --accent: #0f6f63;
+  --accent-ink: #e7fffb;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Avenir Next", "Hiragino Kaku Gothic ProN", "Segoe UI", sans-serif;
+  color: var(--ink);
+  background: radial-gradient(circle at 85% -10%, #f6ffd8 0%, transparent 42%),
+    radial-gradient(circle at 5% 5%, #d8f8f2 0%, transparent 28%), var(--bg);
+}
+
+.bg-noise {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.12;
+  background-image: radial-gradient(#111 0.4px, transparent 0.4px);
+  background-size: 3px 3px;
+}
+
+.site-head {
+  width: min(1020px, 92vw);
+  margin: 18px auto 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.brand {
+  font-family: "Iowan Old Style", "Times New Roman", serif;
+  font-size: 22px;
+  letter-spacing: 0.02em;
+}
+
+.ghost {
+  text-decoration: none;
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 7px 14px;
+  font-size: 13px;
+}
+
+main {
+  width: min(1020px, 92vw);
+  margin: 18px auto 48px;
+}
+
+.hero {
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  padding: 32px 30px;
+  background: linear-gradient(160deg, #fffcf5 0%, #fdf9ef 50%, #f8fff8 100%);
+  box-shadow: 0 18px 50px rgba(30, 30, 30, 0.07);
+}
+
+.eyebrow {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+h1 {
+  margin: 8px 0 10px;
+  font-family: "Iowan Old Style", "Times New Roman", serif;
+  font-size: clamp(34px, 4.7vw, 54px);
+  line-height: 1.06;
+}
+
+.lede {
+  margin: 0;
+  max-width: 62ch;
+  color: var(--muted);
+}
+
+code {
+  background: #efe8d5;
+  border-radius: 5px;
+  padding: 1px 6px;
+}
+
+.cta-row {
+  margin-top: 22px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.primary,
+.secondary {
+  text-decoration: none;
+  border-radius: 10px;
+  padding: 9px 15px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.primary {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.secondary {
+  color: var(--ink);
+  border: 1px solid var(--line);
+}
+
+.grid {
+  margin-top: 16px;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.card {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 15px;
+  background: var(--panel);
+}
+
+.card h2 {
+  margin: 0 0 8px;
+  font-size: 16px;
+}
+
+.card p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.steps,
+.release {
+  margin-top: 12px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 15px;
+  background: var(--panel);
+}
+
+.steps h2,
+.release h2 {
+  margin: 0 0 10px;
+  font-size: 16px;
+}
+
+.steps ol {
+  margin: 0;
+  padding-left: 20px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.release p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.inline-link {
+  display: inline-block;
+  margin-top: 10px;
+  color: var(--accent);
+  font-weight: 700;
+}
+
+@media (max-width: 820px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}

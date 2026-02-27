@@ -108,6 +108,13 @@ Release notes policy:
 - Version-specific notes are stored under `docs/releases/` (example: `docs/releases/v0.1.0.md`)
 - Release publication is triggered by `tag push` (`vX.Y.Z`)
 
+## Landing Page
+
+- Landing page source: `site/`
+- Deployment: GitHub Pages via `.github/workflows/pages.yml`
+- Operations note: `docs/github-pages.md`
+- Quality guide: `docs/landing-page-quality.md`
+
 ## System Requirements
 
 - macOS
