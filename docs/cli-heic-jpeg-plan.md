@@ -15,10 +15,10 @@ macOS の ImageIO を使い、**単一 HEIC/HEIF ファイル入力**を JPEG �
 
 ## 変更する公開インターフェース / 構成
 - 追加クレート
-- `crates/heic_ready_core`（変換ロジック）
-- `crates/heic_ready_cli`（CLIエントリ）
+- `crates/heic-ready-core`（変換ロジック）
+- `crates/heic-ready-cli`（CLIエントリ）
 - 追加コマンド
-- `cargo run -p heic_ready_cli -- <input.heic>`
+- `cargo run -p heic-ready-cli -- <input.heic>`
 - core API（公開）
 - `ConvertOptions { jpeg_quality: u8 /*=100*/ }`
 - `ConvertResult { input_path, output_path, bytes_written, elapsed_ms }`
@@ -29,12 +29,12 @@ macOS の ImageIO を使い、**単一 HEIC/HEIF ファイル入力**を JPEG �
 ## 実装詳細（decision complete）
 
 ### 1. プロジェクト構造
-- ルートに Cargo workspace を作成し、`src-tauri`, `crates/heic_ready_core`, `crates/heic_ready_cli` を member 化
-- `heic_ready_cli` は `clap` で最小引数を受ける
-- `heic_ready_cli` は I/O と終了コードのみ担当、変換処理は全て `heic_ready_core` に委譲
+- ルートに Cargo workspace を作成し、`src-tauri`, `crates/heic-ready-core`, `crates/heic-ready-cli` を member 化
+- `heic-ready-cli` は `clap` で最小引数を受ける
+- `heic-ready-cli` は I/O と終了コードのみ担当、変換処理は全て `heic-ready-core` に委譲
 
 ### 2. CLI仕様（固定）
-- 形式: `heic_ready_cli <input_path>`
+- 形式: `heic-ready-cli <input_path>`
 - 挙動:
 - 拡張子が `.heic/.heif` 以外なら終了コード `2`
 - 変換成功で終了コード `0`
@@ -108,7 +108,7 @@ macOS の ImageIO を使い、**単一 HEIC/HEIF ファイル入力**を JPEG �
 - 同名衝突で既存JPEGを上書きしない
 
 ## 実装順序
-1. workspace化 + `heic_ready_core` / `heic_ready_cli` 追加  
+1. workspace化 + `heic-ready-core` / `heic-ready-cli` 追加  
 2. core の I/Oバリデーション・出力命名・原子的書き込み  
 3. ImageIO decode/encode（品質100）  
 4. orientation画素反映 + メタ引き継ぎ  

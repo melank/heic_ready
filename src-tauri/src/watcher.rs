@@ -953,7 +953,7 @@ mod tests {
             .duration_since(UNIX_EPOCH)
             .expect("system time")
             .as_nanos();
-        std::env::temp_dir().join(format!("heic_ready_{stamp}_{name}"))
+        std::env::temp_dir().join(format!("heic-ready_{stamp}_{name}"))
     }
 
     fn unique_temp_dir_path(name: &str) -> PathBuf {
@@ -961,6 +961,6 @@ mod tests {
             .duration_since(UNIX_EPOCH)
             .expect("system time")
             .as_nanos();
-        std::env::temp_dir().join(format!("heic_ready_dir_{stamp}_{name}"))
+        std::env::temp_dir().join(format!("heic-ready_dir_{stamp}_{name}"))
     }
 }

@@ -67,7 +67,7 @@ Stabilization guard (to avoid processing files still being written):
 
 Stored at:
 
-- `app_config_dir/heic_ready/config.json`
+- `app_config_dir/heic-ready/config.json`
 
 Main fields:
 

@@ -362,7 +362,7 @@ fn verify_writable_dir(dir: &Path, label: &str) -> Result<(), String> {
         .duration_since(UNIX_EPOCH)
         .map(|d| d.as_nanos())
         .unwrap_or(0);
-    let tmp = dir.join(format!(".heic_ready_perm_{}_{}", std::process::id(), stamp));
+    let tmp = dir.join(format!(".heic-ready_perm_{}_{}", std::process::id(), stamp));
     OpenOptions::new()
         .create_new(true)
         .write(true)
@@ -414,15 +414,15 @@ mod tests {
 
     #[test]
     fn normalize_watch_folder_path_trims_and_removes_trailing_separator() {
-        let path = normalize_watch_folder_path(" /tmp/heic_ready_perm_test/ ")
+        let path = normalize_watch_folder_path(" /tmp/heic-ready_perm_test/ ")
             .expect("normalize")
             .expect("path");
-        assert_eq!(path, PathBuf::from("/tmp/heic_ready_perm_test"));
+        assert_eq!(path, PathBuf::from("/tmp/heic-ready_perm_test"));
     }
 
     #[test]
     fn normalize_watch_folder_path_rejects_relative_path() {
-        let err = normalize_watch_folder_path("tmp/heic_ready").expect_err("must fail");
+        let err = normalize_watch_folder_path("tmp/heic-ready").expect_err("must fail");
         assert!(err.contains("must be absolute"));
     }
 }

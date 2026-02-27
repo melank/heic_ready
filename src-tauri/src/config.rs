@@ -5,7 +5,7 @@ use std::{
 
 use serde::{Deserialize, Serialize};
 
-const APP_CONFIG_SUBDIR: &str = "heic_ready";
+const APP_CONFIG_SUBDIR: &str = "heic-ready";
 const CONFIG_FILE_NAME: &str = "config.json";
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -158,7 +158,7 @@ mod tests {
             .as_nanos();
         let seq = TEST_SEQ.fetch_add(1, Ordering::Relaxed);
         let path = std::env::temp_dir().join(format!(
-            "heic_ready_config_test_{}_{}_{}",
+            "heic-ready-config-test-{}_{}_{}",
             std::process::id(),
             nanos,
             seq
@@ -235,4 +235,5 @@ mod tests {
         assert!(content.contains("\"paused\": true"));
         let _ = fs::remove_dir_all(root);
     }
+
 }

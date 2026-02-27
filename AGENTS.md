@@ -1,8 +1,8 @@
-# AGENTS.md — heic_ready / Codex 指示
+# AGENTS.md — heic-ready / Codex 指示
 
 ## プロダクトの定義
 
-heic_ready は、macOS 上で指定フォルダに入った HEIC/HEIF 画像を
+heic-ready は、macOS 上で指定フォルダに入った HEIC/HEIF 画像を
 ユーザー操作なしで「どこでも使える形式（JPEG）」へ準備する常駐ユーティリティである。
 
 ユーザーは変換という概念を意識しない。
