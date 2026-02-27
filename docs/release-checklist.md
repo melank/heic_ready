@@ -23,10 +23,9 @@
 ## 3. リリース準備
 
 - バージョン番号を確定する
-- リリースノート草案を作成する
-  - 追加機能
-  - 修正内容
-  - 既知の制約
+- `docs/release-notes-template.md` を元にリリースノート草案を作成する
+  - `Added / Changed / Fixed / Known Issues / Upgrade Notes` を埋める
+  - 公開時にGitHub Release本文へ転記する
 - タグ作成コマンドを準備する
   - `git tag vX.Y.Z`
   - `git push origin vX.Y.Z`
