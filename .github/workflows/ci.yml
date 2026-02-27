@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: src-tauri
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            src-tauri/target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('src-tauri/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: Run tests
+        run: cargo test --lib
