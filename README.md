@@ -113,6 +113,7 @@ Release notes policy:
 - Landing page source: `site/`
 - Deployment: GitHub Pages via `.github/workflows/pages.yml`
 - Operations note: `docs/github-pages.md`
+- Quality guide: `docs/landing-page-quality.md`
 
 ## System Requirements
 
