@@ -15,3 +15,7 @@ pnpm-debug.log*
 target/
 src-tauri/target/
 src-tauri/.tauri/
+
+# Local release artifacts
+release/
+releases/
