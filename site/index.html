@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="HEIC Ready converts incoming HEIC/HEIF files to JPEG automatically on macOS."
+    />
+    <title>HEIC Ready</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="bg-noise" aria-hidden="true"></div>
+    <header class="site-head">
+      <div class="brand">HEIC Ready</div>
+      <a class="ghost" href="https://github.com/melank/heic_ready">GitHub</a>
+    </header>
+
+    <main>
+      <section class="hero">
+        <p class="eyebrow">macOS Background Utility</p>
+        <h1>HEIC In. JPEG Out. No Extra Steps.</h1>
+        <p class="lede">
+          Watch folders, auto-convert <code>.heic</code>/<code>.heif</code>, and keep your upload
+          workflow frictionless.
+        </p>
+        <div class="cta-row">
+          <a class="primary" href="https://github.com/melank/heic_ready/releases/latest">Download DMG</a>
+          <a class="secondary" href="https://github.com/melank/heic_ready">View Source</a>
+        </div>
+      </section>
+
+      <section class="grid">
+        <article class="card">
+          <h2>Folder Watch</h2>
+          <p>
+            Event-driven watch pipeline with debounce and stabilization checks to avoid partial-file
+            conversion.
+          </p>
+        </article>
+        <article class="card">
+          <h2>Atomic Output</h2>
+          <p>
+            Writes to temporary files first, then renames, so incomplete JPEG files are not surfaced.
+          </p>
+        </article>
+        <article class="card">
+          <h2>Tray-First UX</h2>
+          <p>
+            Minimal runtime UI with pause/resume, settings, recent logs, and bilingual labels
+            (EN/JA).
+          </p>
+        </article>
+      </section>
+
+      <section class="steps">
+        <h2>How It Feels</h2>
+        <ol>
+          <li>AirDrop or save HEIC photos to your watch folder.</li>
+          <li>HEIC Ready detects and converts in the background.</li>
+          <li>Attach generated JPEG immediately in web services.</li>
+        </ol>
+      </section>
+
+      <section class="release">
+        <h2>Release</h2>
+        <p>
+          Versioned releases are published on GitHub with DMG artifacts and release notes.
+        </p>
+        <a class="inline-link" href="https://github.com/melank/heic_ready/releases/tag/v0.1.0"
+          >Read v0.1.0 notes</a
+        >
+      </section>
+    </main>
+  </body>
+</html>
