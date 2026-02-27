@@ -52,6 +52,18 @@ body {
   font-size: 13px;
 }
 
+.with-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.with-icon svg {
+  width: 14px;
+  height: 14px;
+  fill: currentColor;
+}
+
 main {
   width: min(1020px, 92vw);
   margin: 18px auto 48px;
