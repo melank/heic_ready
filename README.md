@@ -1,6 +1,7 @@
 # HEIC Ready
 
 [![Platform: macOS](https://img.shields.io/badge/Platform-macOS-111111?style=flat-square&logo=apple&logoColor=white)](https://www.apple.com/macos/)
+[![CI](https://github.com/melank/heic_ready/actions/workflows/ci.yml/badge.svg)](https://github.com/melank/heic_ready/actions/workflows/ci.yml)
 [![Rust: 1.77+](https://img.shields.io/badge/Rust-1.77%2B-000000?style=flat-square&logo=rust)](https://www.rust-lang.org/)
 [![Tauri: 2.x](https://img.shields.io/badge/Tauri-2.x-24C8D8?style=flat-square&logo=tauri&logoColor=white)](https://tauri.app/)
 [![Image stack: macOS sips](https://img.shields.io/badge/Image%20Stack-macOS%20sips-5B5BD6?style=flat-square)](https://ss64.com/mac/sips.html)
@@ -95,9 +96,27 @@ Main fields:
 - Recent Logs window:
   - Last 10 records (`success` / `failure` / `skip` / `info`)
 
+## Releases
+
+- Distribution channel: GitHub Releases
+- Installer format: `.dmg` (macOS)
+- Download latest installer: `https://github.com/melank/heic_ready/releases/latest`
+- Download a specific version: `https://github.com/melank/heic_ready/releases/tag/vX.Y.Z`
+
+Release notes policy:
+
+- Version-specific notes are stored under `docs/releases/` (example: `docs/releases/v0.1.0.md`)
+- Release publication is triggered by `tag push` (`vX.Y.Z`)
+
+## System Requirements
+
+- macOS
+- v0.1.0 installer target: Apple Silicon (`aarch64`)
+- Input file types: `*.heic`, `*.heif`
+
 ## Development
 
-Requirements:
+Development Requirements:
 
 - macOS
 - Rust toolchain
