@@ -23,3 +23,7 @@
 1. `site/` を更新
 2. `master` に反映
 3. `Pages` ワークフロー完了後に公開ページを確認
+
+## 関連ドキュメント
+
+- `docs/landing-page-quality.md`
