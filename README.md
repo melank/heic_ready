@@ -120,6 +120,8 @@ cargo tauri dev
 - Automated tests run via `cargo test`
 - Pre-commit hook runs tests automatically (`.githooks/pre-commit`)
 - Manual E2E checklist: `docs/e2e-manual-test.md`
+- CI operations guide: `docs/ci-operations.md`
+- Release checklist: `docs/release-checklist.md`
 
 Install hooks (first time):
 
