@@ -6,6 +6,11 @@
 
 - `.github/workflows/ci.yml`
 
+関連方針:
+
+- リリースは `tag push` で発火する（コミット push では発火しない）
+- リリース運用は `docs/release-checklist.md` に従う
+
 ## 実行条件
 
 - `master` への `push`
