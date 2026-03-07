@@ -107,6 +107,7 @@ Release notes policy:
 
 - Version-specific notes are stored under `docs/releases/` (example: `docs/releases/v0.1.0.md`)
 - Release publication is triggered by `tag push` (`vX.Y.Z`)
+- Installer (`.dmg`) is built and uploaded to GitHub Release by `.github/workflows/release.yml`
 
 ## Landing Page
 

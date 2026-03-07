@@ -1,10 +1,11 @@
 # CI運用ガイド
 
-このドキュメントは、`GitHub Actions` の最小CI（`cargo test --lib`）を日常運用するための手順を定義する。
+このドキュメントは、`GitHub Actions` のCI/Release運用手順を定義する。
 
 対象ワークフロー:
 
 - `.github/workflows/ci.yml`
+- `.github/workflows/release.yml`
 
 関連方針:
 
@@ -15,6 +16,7 @@
 
 - `master` への `push`
 - `pull_request`
+- `vX.Y.Z` 形式の `tag push`（例: `v0.1.0`）
 
 ## 日常フロー
 
@@ -22,6 +24,8 @@
 2. 必要なテストをローカルで実行する（最低 `cargo test --lib`）
 3. PRを作成する
 4. CIが `green` であることを確認してからマージする
+5. リリース時は `git tag vX.Y.Z && git push origin vX.Y.Z` を実行する
+6. `release.yml` が成功し、GitHub Release に `.dmg` が添付されていることを確認する
 
 ## 失敗時の対応
 
