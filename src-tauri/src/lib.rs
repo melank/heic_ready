@@ -319,12 +319,22 @@ pub fn run() {
             let mut tray_builder = TrayIconBuilder::with_id(TRAY_ID)
                 .menu(&menu)
                 .show_menu_on_left_click(true)
+                .icon_as_template(true)
                 .tooltip("HEIC Ready");
 
-            if let Some(icon) = app.default_window_icon().cloned() {
-                tray_builder = tray_builder.icon(icon);
-            } else {
-                log::warn!("default window icon is unavailable; tray icon may be hidden");
+            {
+                let tray_icon_bytes = include_bytes!("../icons/tray-icon.png");
+                match tauri::image::Image::from_bytes(tray_icon_bytes) {
+                    Ok(icon) => {
+                        tray_builder = tray_builder.icon(icon);
+                    }
+                    Err(err) => {
+                        log::warn!("failed to load tray icon: {err}");
+                        if let Some(icon) = app.default_window_icon().cloned() {
+                            tray_builder = tray_builder.icon(icon);
+                        }
+                    }
+                }
             }
 
             tray_builder
