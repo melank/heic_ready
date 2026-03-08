@@ -17,7 +17,7 @@ const i18n = {
     step2: "HEIC Ready detects and converts in the background.",
     step3: "Attach and upload the generated JPEG to your favorite web service.",
     releaseTitle: "Release",
-    releaseLink: "Read v0.1.0 release notes",
+    releaseSummary_v0_1_0: "Initial release. Folder watch with auto HEIC-to-JPEG conversion, atomic output, tray-resident UI, and bilingual support (EN/JA).",
   },
   ja: {
     metaDescription: "HEIC Ready は macOS 上で HEIC/HEIF ファイルを自動的に JPEG に変換します。",
@@ -37,7 +37,7 @@ const i18n = {
     step2: "HEIC Ready がバックグラウンドで検知・変換。",
     step3: "生成された JPEG を好きな Web サービスにすぐ添付、アップロード。",
     releaseTitle: "リリース",
-    releaseLink: "v0.1.0 のリリースノートを読む",
+    releaseSummary_v0_1_0: "初回リリース。フォルダ監視による HEIC→JPEG 自動変換、アトミック出力、トレイ常駐 UI、日英2言語対応。",
   },
 };
 

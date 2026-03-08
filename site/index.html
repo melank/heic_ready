@@ -31,58 +31,65 @@
       </nav>
     </header>
 
-    <main>
-      <section class="hero">
-        <p class="eyebrow" data-i18n="eyebrow">macOS Background Utility</p>
-        <h1 data-i18n="heroTitle">HEIC In. JPEG Out. No&nbsp;Extra&nbsp;Steps.</h1>
-        <p class="lede" data-i18n="lede" data-i18n-html>
-          Watch folders, auto-convert <code>.heic</code>/<code>.heif</code>, and keep your upload
-          workflow frictionless.
-        </p>
-        <div class="cta-row">
-          <a class="primary" href="https://github.com/melank/heic_ready/releases/latest" data-i18n="ctaDownload">Download DMG</a>
-          <a class="secondary" href="https://github.com/melank/heic_ready" data-i18n="ctaSource">View Source</a>
-        </div>
-      </section>
-
-      <section class="grid">
-        <article class="card">
-          <h2 data-i18n="cardWatchTitle">Folder Watch</h2>
-          <p data-i18n="cardWatchDesc">
-            Event-driven watch pipeline with debounce and stabilization checks to avoid partial-file
-            conversion.
+    <div class="layout">
+      <main>
+        <section class="hero">
+          <p class="eyebrow" data-i18n="eyebrow">macOS Background Utility</p>
+          <h1 data-i18n="heroTitle">HEIC In. JPEG Out. No&nbsp;Extra&nbsp;Steps.</h1>
+          <p class="lede" data-i18n="lede" data-i18n-html>
+            Watch folders, auto-convert <code>.heic</code>/<code>.heif</code>, and keep your upload
+            workflow frictionless.
           </p>
-        </article>
-        <article class="card">
-          <h2 data-i18n="cardAtomicTitle">Atomic Output</h2>
-          <p data-i18n="cardAtomicDesc">
-            Writes to temporary files first, then renames, so incomplete JPEG files are not surfaced.
-          </p>
-        </article>
-        <article class="card">
-          <h2 data-i18n="cardTrayTitle">Tray-First UX</h2>
-          <p data-i18n="cardTrayDesc">
-            Minimal runtime UI with pause/resume, settings, recent logs, and bilingual labels
-            (EN/JA).
-          </p>
-        </article>
-      </section>
+          <div class="cta-row">
+            <a class="primary" href="https://github.com/melank/heic_ready/releases/latest" data-i18n="ctaDownload">Download DMG</a>
+            <a class="secondary" href="https://github.com/melank/heic_ready" data-i18n="ctaSource">View Source</a>
+          </div>
+        </section>
 
-      <section class="steps">
-        <h2 data-i18n="stepsTitle">How It Feels</h2>
-        <ol>
-          <li data-i18n="step1">AirDrop or save HEIC photos to your watch folder.</li>
-          <li data-i18n="step2">HEIC Ready detects and converts in the background.</li>
-          <li data-i18n="step3">Attach generated JPEG immediately in web services.</li>
-        </ol>
-      </section>
+        <section class="grid">
+          <article class="card">
+            <h2 data-i18n="cardWatchTitle">Folder Watch</h2>
+            <p data-i18n="cardWatchDesc">
+              Event-driven watch pipeline with debounce and stabilization checks to avoid partial-file
+              conversion.
+            </p>
+          </article>
+          <article class="card">
+            <h2 data-i18n="cardAtomicTitle">Atomic Output</h2>
+            <p data-i18n="cardAtomicDesc">
+              Writes to temporary files first, then renames, so incomplete JPEG files are not surfaced.
+            </p>
+          </article>
+          <article class="card">
+            <h2 data-i18n="cardTrayTitle">Tray-First UX</h2>
+            <p data-i18n="cardTrayDesc">
+              Minimal runtime UI with pause/resume, settings, recent logs, and bilingual labels
+              (EN/JA).
+            </p>
+          </article>
+        </section>
 
-      <section class="release">
+        <section class="steps">
+          <h2 data-i18n="stepsTitle">How It Feels</h2>
+          <ol>
+            <li data-i18n="step1">AirDrop or save HEIC photos to your watch folder.</li>
+            <li data-i18n="step2">HEIC Ready detects and converts in the background.</li>
+            <li data-i18n="step3">Attach generated JPEG immediately in web services.</li>
+          </ol>
+        </section>
+      </main>
+
+      <aside class="release-sidebar">
         <h2 data-i18n="releaseTitle">Release</h2>
-        <a class="inline-link" href="https://github.com/melank/heic_ready/releases/tag/v0.1.0" data-i18n="releaseLink"
-          >Read v0.1.0 notes</a
-        >
-      </section>
-    </main>
+        <div class="release-list">
+          <article class="release-entry">
+            <a class="release-version" href="https://github.com/melank/heic_ready/releases/tag/v0.1.0">v0.1.0</a>
+            <p class="release-summary" data-i18n="releaseSummary_v0_1_0">
+              Initial release. Folder watch with auto HEIC-to-JPEG conversion, atomic output, tray-resident UI, and bilingual support (EN/JA).
+            </p>
+          </article>
+        </div>
+      </aside>
+    </div>
   </body>
 </html>
