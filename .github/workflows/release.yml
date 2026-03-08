@@ -49,13 +49,35 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-cargo-release-
 
-      - name: Install cargo-tauri
-        run: cargo install tauri-cli --version "^2.0.0" --locked
+      - name: Install cargo-binstall
+        run: curl -fsSL https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
 
-      - name: Build DMG (unsigned)
-        run: cargo tauri build --target aarch64-apple-darwin --bundles dmg
+      - name: Install cargo-tauri
+        run: cargo binstall tauri-cli --version "^2.0.0" --no-confirm
+
+      - name: Build app bundle
+        run: cargo tauri build --target aarch64-apple-darwin --bundles app
         env:
           TAURI_SIGNING_PRIVATE_KEY: ""
+
+      - name: Ad-hoc codesign
+        run: |
+          app_path="$(find target/aarch64-apple-darwin/release/bundle/macos -maxdepth 1 -name '*.app' -print -quit)"
+          codesign --force --deep -s - "${app_path}"
+          codesign --verify --deep --strict "${app_path}"
+
+      - name: Create DMG
+        run: |
+          rm -rf target/aarch64-apple-darwin/release/bundle/dmg
+          app_path="$(find target/aarch64-apple-darwin/release/bundle/macos -maxdepth 1 -name '*.app' -print -quit)"
+          app_name="$(basename "${app_path}" .app)"
+          dmg_path="target/aarch64-apple-darwin/release/bundle/dmg/${app_name}_$(echo ${{ env.RELEASE_TAG }}).dmg"
+          mkdir -p "$(dirname "${dmg_path}")"
+          staging="${RUNNER_TEMP}/dmg-staging"
+          mkdir -p "${staging}"
+          cp -R "${app_path}" "${staging}/"
+          ln -s /Applications "${staging}/Applications"
+          hdiutil create -volname "${app_name}" -srcfolder "${staging}" -ov -format UDZO "${dmg_path}"
 
       - name: Upload DMG to GitHub Release
         uses: softprops/action-gh-release@v2
