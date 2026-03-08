@@ -5,27 +5,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="HEIC Ready は macOS 上で HEIC/HEIF ファイルを自動的に JPEG に変換します。"
+      content="HEIC 変換を Mac で自動化。HEIC Ready はフォルダを監視し HEIC/HEIF ファイルを自動で JPEG に変換するアプリです。"
     />
     <link rel="canonical" href="https://melank.github.io/heic_ready/" />
+    <link rel="alternate" hreflang="ja" href="https://melank.github.io/heic_ready/" />
+    <link rel="alternate" hreflang="en" href="https://melank.github.io/heic_ready/" />
+    <link rel="alternate" hreflang="x-default" href="https://melank.github.io/heic_ready/" />
 
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://melank.github.io/heic_ready/" />
-    <meta property="og:title" content="HEIC Ready — macOS 向け HEIC→JPEG 自動変換ユーティリティ" />
+    <meta property="og:title" content="HEIC Ready — Mac で HEIC 変換を自動化" />
     <meta
       property="og:description"
-      content="HEIC Ready は macOS 上で HEIC/HEIF ファイルを自動的に JPEG に変換します。"
+      content="HEIC 変換を Mac で自動化。フォルダを監視し HEIC/HEIF を自動で JPEG に変換するアプリ。"
     />
     <meta property="og:locale" content="ja_JP" />
     <meta property="og:locale:alternate" content="en" />
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary" />
-    <meta name="twitter:title" content="HEIC Ready — macOS 向け HEIC→JPEG 自動変換ユーティリティ" />
+    <meta name="twitter:title" content="HEIC Ready — Mac で HEIC 変換を自動化" />
     <meta
       name="twitter:description"
-      content="HEIC Ready は macOS 上で HEIC/HEIF ファイルを自動的に JPEG に変換します。"
+      content="HEIC 変換を Mac で自動化。フォルダを監視し HEIC/HEIF を自動で JPEG に変換するアプリ。"
     />
 
     <!-- Structured Data -->
@@ -36,19 +39,51 @@
         "name": "HEIC Ready",
         "operatingSystem": "macOS",
         "applicationCategory": "UtilitiesApplication",
-        "description": "フォルダを監視し、HEIC/HEIF を自動的に JPEG に変換。アップロード作業をスムーズに。",
+        "description": "Mac で HEIC 変換を自動化。フォルダを監視し HEIC/HEIF ファイルを自動で JPEG に変換するアプリです。",
+        "keywords": "HEIC 変換, HEIC JPEG 変換, Mac HEIC 変換, HEIF 変換, HEIC Ready",
         "softwareVersion": "0.1.0",
         "offers": {
           "@type": "Offer",
-          "price": "0",
-          "priceCurrency": "USD"
+          "price": "0"
         },
         "downloadUrl": "https://github.com/melank/heic_ready/releases/latest",
         "url": "https://melank.github.io/heic_ready/"
       }
     </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "HEIC 変換は Mac でどうやるの？",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "HEIC Ready をインストールして監視フォルダを設定するだけで、HEIC ファイルが追加されるたびに自動で JPEG に変換されます。"
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Is HEIC Ready open source?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. HEIC Ready is open-source software available on GitHub."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "変換元の HEIC ファイルはどうなりますか？",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "設定で選べます。「共存」モードでは元ファイルをそのまま残し、「置換」モードでは元ファイルをゴミ箱に移動します。"
+            }
+          }
+        ]
+      }
+    </script>
 
-    <title>HEIC Ready — macOS 向け HEIC→JPEG 自動変換ユーティリティ</title>
+    <title>HEIC Ready — Mac で HEIC 変換を自動化 | HEIC→JPEG 変換アプリ</title>
     <link rel="stylesheet" href="./styles.css" />
     <script src="./i18n.js" defer></script>
   </head>
@@ -88,21 +123,21 @@
 
         <section class="grid">
           <article class="card">
-            <h2 data-i18n="cardWatchTitle">フォルダ監視</h2>
-            <p data-i18n="cardWatchDesc">
-              指定フォルダを常に見張り、HEIC が追加されるたびに自動で JPEG に変換します。
+            <h2 data-i18n="cardAutoConvertTitle">HEIC 変換の手間をゼロに</h2>
+            <p data-i18n="cardAutoConvertDesc">
+              監視フォルダを設定するだけで、HEIC をPCに移すたびに自動で JPEG に変換。毎回の変換作業はもう不要です。
+            </p>
+          </article>
+          <article class="card">
+            <h2 data-i18n="cardBackgroundTitle">常駐しても負荷ゼロ</h2>
+            <p data-i18n="cardBackgroundDesc">
+              メニューバーに常駐しつつ、ファイルイベント駆動で動作するため待機中の CPU・メモリ消費はほぼありません。
             </p>
           </article>
           <article class="card">
             <h2 data-i18n="cardAtomicTitle">アトミック出力</h2>
             <p data-i18n="cardAtomicDesc">
               一時ファイルに書き込み後にリネーム。不完全な JPEG ファイルが表示されることはありません。
-            </p>
-          </article>
-          <article class="card">
-            <h2 data-i18n="cardTrayTitle">完全バックグラウンド</h2>
-            <p data-i18n="cardTrayDesc">
-              起動したらあとはお任せ。邪魔にならずメニューバーに常駐し、必要なときだけ操作できます。
             </p>
           </article>
         </section>
@@ -114,6 +149,20 @@
             <li data-i18n="step2">HEIC Ready がバックグラウンドで検知・変換。</li>
             <li data-i18n="step3">生成された JPEG を好きな Web サービスにすぐ添付、アップロード。</li>
           </ol>
+        </section>
+
+        <section class="faq">
+          <details>
+            <summary data-i18n="faqTitle">よくある質問</summary>
+            <dl class="faq-list">
+              <dt data-i18n="faqQ1">Mac で HEIC 変換するにはどうすればいいですか？</dt>
+              <dd data-i18n="faqA1">HEIC Ready をインストールして監視フォルダを設定するだけです。HEIC ファイルが追加されるたびに自動で JPEG に変換されます。</dd>
+              <dt data-i18n="faqQ2">HEIC Ready はオープンソースですか？</dt>
+              <dd data-i18n="faqA2">はい。HEIC Ready はオープンソースソフトウェアです。GitHub からダウンロードできます。</dd>
+              <dt data-i18n="faqQ3">変換元の HEIC ファイルはどうなりますか？</dt>
+              <dd data-i18n="faqA3">設定で選べます。「共存」モードでは元ファイルをそのまま残し、「置換」モードでは元ファイルをゴミ箱に移動します。</dd>
+            </dl>
+          </details>
         </section>
       </main>
 

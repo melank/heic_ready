@@ -194,6 +194,57 @@ code {
   font-size: 14px;
 }
 
+.faq {
+  margin-top: 12px;
+}
+
+.faq details {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 15px;
+  background: var(--panel);
+}
+
+.faq summary {
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 700;
+  list-style: none;
+}
+
+.faq summary::before {
+  content: "▸ ";
+}
+
+.faq details[open] summary::before {
+  content: "▾ ";
+}
+
+.faq summary::-webkit-details-marker {
+  display: none;
+}
+
+.faq-list {
+  margin: 12px 0 0;
+}
+
+.faq-list dt {
+  font-weight: 600;
+  font-size: 14px;
+  margin-top: 10px;
+}
+
+.faq-list dt:first-child {
+  margin-top: 0;
+}
+
+.faq-list dd {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
 .steps {
   margin-top: 12px;
   border: 1px solid var(--line);
