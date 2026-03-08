@@ -26,6 +26,7 @@
 4. CIが `green` であることを確認してからマージする
 5. リリース時は `git tag vX.Y.Z && git push origin vX.Y.Z` を実行する
 6. `release.yml` が成功し、GitHub Release に `.dmg` が添付されていることを確認する
+7. `Verify codesign and notarization` が成功していることを確認する
 
 ## 失敗時の対応
 

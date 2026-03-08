@@ -43,6 +43,33 @@ body {
   letter-spacing: 0.02em;
 }
 
+.head-nav {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.lang-toggle {
+  display: inline-flex;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.lang-toggle button {
+  all: unset;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.lang-toggle button.active {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
 .ghost {
   text-decoration: none;
   color: var(--ink);
@@ -90,6 +117,10 @@ h1 {
   font-family: "Iowan Old Style", "Times New Roman", serif;
   font-size: clamp(34px, 4.7vw, 54px);
   line-height: 1.06;
+}
+
+.hero h1 {
+  white-space: pre-line;
 }
 
 .lede {

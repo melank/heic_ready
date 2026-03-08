@@ -13,6 +13,11 @@
 - `master` が最新である
 - CIが `green` である
 - 未コミット変更がない
+- GitHub Actions Secrets が設定済みである
+  - 必須: `APPLE_CERTIFICATE`, `APPLE_CERTIFICATE_PASSWORD`
+  - Notarization（どちらか一式）:
+    - `APPLE_ID`, `APPLE_PASSWORD`（または `APPLE_APP_SPECIFIC_PASSWORD`）, `APPLE_TEAM_ID`
+    - `APPLE_API_KEY_ID`, `APPLE_API_ISSUER`, `APPLE_API_KEY_CONTENT`
 
 ## 2. 品質確認
 
@@ -34,6 +39,7 @@
 
 - `release.yml` が成功している
 - リリースページに `.dmg` 成果物とノートが正しく表示される
+- ワークフローログで `Verify codesign and notarization` が成功している
 - 主要な起動/変換フローを再確認する
 - 問題がある場合は修正方針をIssue化する
 

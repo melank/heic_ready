@@ -116,6 +116,12 @@ Release notes policy:
 - Operations note: `docs/github-pages.md`
 - Quality guide: `docs/landing-page-quality.md`
 
+Local preview:
+
+```bash
+npx serve site
+```
+
 ## System Requirements
 
 - macOS

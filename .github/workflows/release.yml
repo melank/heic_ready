@@ -52,8 +52,10 @@ jobs:
       - name: Install cargo-tauri
         run: cargo install tauri-cli --version "^2.0.0" --locked
 
-      - name: Build DMG
+      - name: Build DMG (unsigned)
         run: cargo tauri build --target aarch64-apple-darwin --bundles dmg
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ""
 
       - name: Upload DMG to GitHub Release
         uses: softprops/action-gh-release@v2
