@@ -1,13 +1,54 @@
 <!doctype html>
-<html lang="en">
+<html lang="ja">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="HEIC Ready converts incoming HEIC/HEIF files to JPEG automatically on macOS."
+      content="HEIC Ready は macOS 上で HEIC/HEIF ファイルを自動的に JPEG に変換します。"
     />
-    <title>HEIC Ready</title>
+    <link rel="canonical" href="https://melank.github.io/heic_ready/" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://melank.github.io/heic_ready/" />
+    <meta property="og:title" content="HEIC Ready — macOS 向け HEIC→JPEG 自動変換ユーティリティ" />
+    <meta
+      property="og:description"
+      content="HEIC Ready は macOS 上で HEIC/HEIF ファイルを自動的に JPEG に変換します。"
+    />
+    <meta property="og:locale" content="ja_JP" />
+    <meta property="og:locale:alternate" content="en" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="HEIC Ready — macOS 向け HEIC→JPEG 自動変換ユーティリティ" />
+    <meta
+      name="twitter:description"
+      content="HEIC Ready は macOS 上で HEIC/HEIF ファイルを自動的に JPEG に変換します。"
+    />
+
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "HEIC Ready",
+        "operatingSystem": "macOS",
+        "applicationCategory": "UtilitiesApplication",
+        "description": "フォルダを監視し、HEIC/HEIF を自動的に JPEG に変換。アップロード作業をスムーズに。",
+        "softwareVersion": "0.1.0",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
+        "downloadUrl": "https://github.com/melank/heic_ready/releases/latest",
+        "url": "https://melank.github.io/heic_ready/"
+      }
+    </script>
+
+    <title>HEIC Ready — macOS 向け HEIC→JPEG 自動変換ユーティリティ</title>
     <link rel="stylesheet" href="./styles.css" />
     <script src="./i18n.js" defer></script>
   </head>
@@ -17,8 +58,8 @@
       <div class="brand">HEIC Ready</div>
       <nav class="head-nav">
         <span class="lang-toggle" role="radiogroup" aria-label="Language">
-          <button data-lang="en" type="button" class="active">EN</button>
-          <button data-lang="ja" type="button">JA</button>
+          <button data-lang="en" type="button">EN</button>
+          <button data-lang="ja" type="button" class="active">JA</button>
         </span>
         <a class="ghost with-icon" href="https://github.com/melank/heic_ready">
           <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -34,62 +75,62 @@
     <div class="layout">
       <main>
         <section class="hero">
-          <p class="eyebrow" data-i18n="eyebrow">macOS Background Utility</p>
-          <h1 data-i18n="heroTitle">HEIC In. JPEG Out. No&nbsp;Extra&nbsp;Steps.</h1>
+          <p class="eyebrow" data-i18n="eyebrow">macOS バックグラウンドユーティリティ</p>
+          <h1 data-i18n="heroTitle">iPhone の写真を JPEG に。<br>PCに移したら、すぐにアップロード</h1>
           <p class="lede" data-i18n="lede" data-i18n-html>
-            Watch folders, auto-convert <code>.heic</code>/<code>.heif</code>, and keep your upload
-            workflow frictionless.
+            フォルダを監視し、<code>.heic</code>/<code>.heif</code> を自動変換。アップロード作業をスムーズに。
           </p>
           <div class="cta-row">
-            <a class="primary" href="https://github.com/melank/heic_ready/releases/latest" data-i18n="ctaDownload">Download DMG</a>
-            <a class="secondary" href="https://github.com/melank/heic_ready" data-i18n="ctaSource">View Source</a>
+            <a class="primary" href="https://github.com/melank/heic_ready/releases/latest" data-i18n="ctaDownload">DMG をダウンロード</a>
+            <a class="secondary" href="https://github.com/melank/heic_ready" data-i18n="ctaSource">ソースを見る</a>
           </div>
         </section>
 
         <section class="grid">
           <article class="card">
-            <h2 data-i18n="cardWatchTitle">Folder Watch</h2>
+            <h2 data-i18n="cardWatchTitle">フォルダ監視</h2>
             <p data-i18n="cardWatchDesc">
-              Event-driven watch pipeline with debounce and stabilization checks to avoid partial-file
-              conversion.
+              指定フォルダを常に見張り、HEIC が追加されるたびに自動で JPEG に変換します。
             </p>
           </article>
           <article class="card">
-            <h2 data-i18n="cardAtomicTitle">Atomic Output</h2>
+            <h2 data-i18n="cardAtomicTitle">アトミック出力</h2>
             <p data-i18n="cardAtomicDesc">
-              Writes to temporary files first, then renames, so incomplete JPEG files are not surfaced.
+              一時ファイルに書き込み後にリネーム。不完全な JPEG ファイルが表示されることはありません。
             </p>
           </article>
           <article class="card">
-            <h2 data-i18n="cardTrayTitle">Tray-First UX</h2>
+            <h2 data-i18n="cardTrayTitle">完全バックグラウンド</h2>
             <p data-i18n="cardTrayDesc">
-              Minimal runtime UI with pause/resume, settings, recent logs, and bilingual labels
-              (EN/JA).
+              起動したらあとはお任せ。邪魔にならずメニューバーに常駐し、必要なときだけ操作できます。
             </p>
           </article>
         </section>
 
         <section class="steps">
-          <h2 data-i18n="stepsTitle">How It Feels</h2>
+          <h2 data-i18n="stepsTitle">使いかた・利用の流れ</h2>
           <ol>
-            <li data-i18n="step1">AirDrop or save HEIC photos to your watch folder.</li>
-            <li data-i18n="step2">HEIC Ready detects and converts in the background.</li>
-            <li data-i18n="step3">Attach generated JPEG immediately in web services.</li>
+            <li data-i18n="step1">AirDrop で HEIC 写真を監視フォルダに入れる。</li>
+            <li data-i18n="step2">HEIC Ready がバックグラウンドで検知・変換。</li>
+            <li data-i18n="step3">生成された JPEG を好きな Web サービスにすぐ添付、アップロード。</li>
           </ol>
         </section>
       </main>
 
       <aside class="release-sidebar">
-        <h2 data-i18n="releaseTitle">Release</h2>
+        <h2 data-i18n="releaseTitle">リリース</h2>
         <div class="release-list">
           <article class="release-entry">
             <a class="release-version" href="https://github.com/melank/heic_ready/releases/tag/v0.1.0">v0.1.0</a>
             <p class="release-summary" data-i18n="releaseSummary_v0_1_0">
-              Initial release. Folder watch with auto HEIC-to-JPEG conversion, atomic output, tray-resident UI, and bilingual support (EN/JA).
+              初回リリース。フォルダ監視による HEIC→JPEG 自動変換、アトミック出力、トレイ常駐 UI、日英2言語対応。
             </p>
           </article>
         </div>
       </aside>
     </div>
+    <noscript>
+      <p>HEIC Ready は macOS 上で HEIC/HEIF ファイルを自動的に JPEG に変換するユーティリティです。</p>
+    </noscript>
   </body>
 </html>

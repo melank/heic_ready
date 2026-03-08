@@ -1,5 +1,6 @@
 const i18n = {
   en: {
+    metaTitle: "HEIC Ready — Auto HEIC to JPEG Converter for macOS",
     metaDescription: "HEIC Ready converts incoming HEIC/HEIF files to JPEG automatically on macOS.",
     eyebrow: "macOS Background Utility",
     heroTitle: "HEIC In. JPEG Out. No\u00A0Extra\u00A0Steps.",
@@ -20,6 +21,7 @@ const i18n = {
     releaseSummary_v0_1_0: "Initial release. Folder watch with auto HEIC-to-JPEG conversion, atomic output, tray-resident UI, and bilingual support (EN/JA).",
   },
   ja: {
+    metaTitle: "HEIC Ready — macOS 向け HEIC→JPEG 自動変換ユーティリティ",
     metaDescription: "HEIC Ready は macOS 上で HEIC/HEIF ファイルを自動的に JPEG に変換します。",
     eyebrow: "macOS バックグラウンドユーティリティ",
     heroTitle: "iPhone の写真を JPEG に。\nPCに移したら、すぐにアップロード",
@@ -49,6 +51,8 @@ function applyLang(lang) {
 
   const metaDesc = document.querySelector('meta[name="description"]');
   if (metaDesc) metaDesc.setAttribute("content", dict.metaDescription);
+
+  if (dict.metaTitle) document.title = dict.metaTitle;
 
   document.querySelectorAll("[data-i18n]").forEach((el) => {
     const key = el.getAttribute("data-i18n");
