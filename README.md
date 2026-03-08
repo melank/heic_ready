@@ -86,6 +86,7 @@ Main fields:
   - Pause/Resume
   - Settings
   - Recent Logs
+  - Language (EN / JA)
   - Quit
 - Settings window:
   - Watch folders
@@ -107,12 +108,14 @@ Release notes policy:
 
 - Version-specific notes are stored under `docs/releases/` (example: `docs/releases/v0.1.0.md`)
 - Release publication is triggered by `tag push` (`vX.Y.Z`)
-- Installer (`.dmg`) is built and uploaded to GitHub Release by `.github/workflows/release.yml`
+- Installer (`.dmg`) is built, ad-hoc codesigned, and uploaded to GitHub Release by `.github/workflows/release.yml`
+- The app is not notarized; users need to right-click → Open on first launch
 
 ## Landing Page
 
 - Landing page source: `site/`
 - Deployment: GitHub Pages via `.github/workflows/pages.yml`
+- i18n: EN / JA (auto-detected from browser language, default JA)
 - Operations note: `docs/github-pages.md`
 - Quality guide: `docs/landing-page-quality.md`
 
