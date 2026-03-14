@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://melank.github.io/heic_ready/sitemap.xml

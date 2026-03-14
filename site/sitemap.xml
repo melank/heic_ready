@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <url>
+    <loc>https://melank.github.io/heic_ready/</loc>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://melank.github.io/heic_ready/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://melank.github.io/heic_ready/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://melank.github.io/heic_ready/" />
+    <changefreq>monthly</changefreq>
+    <priority>1.0</priority>
+  </url>
+</urlset>
