@@ -1,5 +1,7 @@
 # HEIC Ready
 
+**Language:** [English](./README.md) | [日本語](./README.ja.md)
+
 [![Platform: macOS](https://img.shields.io/badge/Platform-macOS-111111?style=flat-square&logo=apple&logoColor=white)](https://www.apple.com/macos/)
 [![CI](https://github.com/melank/heic_ready/actions/workflows/ci.yml/badge.svg)](https://github.com/melank/heic_ready/actions/workflows/ci.yml)
 [![Rust: 1.77+](https://img.shields.io/badge/Rust-1.77%2B-000000?style=flat-square&logo=rust)](https://www.rust-lang.org/)

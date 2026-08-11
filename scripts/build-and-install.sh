@@ -87,11 +87,16 @@ codesign --verify --deep --strict "${app_path}"
 
 if [[ -e "${INSTALL_PATH}" ]]; then
   echo "Existing app found at ${INSTALL_PATH}"
-  if [[ ! -t 0 ]]; then
-    die "Overwrite requires interactive confirmation (stdin is not a terminal).
+  if [[ -t 0 ]]; then
+    read -r -p "Overwrite? [y/N] " reply || reply=""
+  else
+    # Allow non-interactive confirmation via piped input (e.g. printf 'y\n' | …).
+    read -r reply || reply=""
+    if [[ -z "${reply}" ]]; then
+      die "Overwrite requires confirmation; stdin is not a terminal and no reply was provided.
 Built app left at: ${app_path}"
+    fi
   fi
-  read -r -p "Overwrite? [y/N] " reply || reply=""
   case "${reply}" in
     y|Y|yes|YES) ;;
     *)

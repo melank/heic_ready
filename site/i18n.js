@@ -26,8 +26,6 @@ const i18n = {
     faqA2: "Yes. HEIC Ready is open-source software available on GitHub.",
     faqQ3: "What happens to the original HEIC files?",
     faqA3: "You choose. In \"Coexist\" mode the originals stay; in \"Replace\" mode they are moved to the Trash.",
-    faqQ4: "Why build from source instead of downloading a DMG?",
-    faqA4: "HEIC Ready is not notarized with an Apple Developer certificate. Local builds are the recommended way to install and run the app.",
     releaseSummary_v0_1_0: "Initial release. Folder watch with auto HEIC-to-JPEG conversion, atomic output, tray-resident UI, and bilingual support (EN/JA).",
   },
   ja: {
@@ -57,8 +55,6 @@ const i18n = {
     faqA2: "はい。HEIC Ready はオープンソースソフトウェアで、GitHub で公開しています。",
     faqQ3: "変換元の HEIC ファイルはどうなりますか？",
     faqA3: "設定で選べます。「共存」モードでは元ファイルをそのまま残し、「置換」モードでは元ファイルをゴミ箱に移動します。",
-    faqQ4: "なぜ DMG ではなくソースからビルドするのですか？",
-    faqA4: "Apple Developer 証明書による公証を行っていないためです。手元でビルドして使う方法を推奨しています。",
     releaseSummary_v0_1_0: "初回リリース。フォルダ監視による HEIC→JPEG 自動変換、アトミック出力、トレイ常駐 UI、日英2言語対応。",
   },
 };
