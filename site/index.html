@@ -66,7 +66,7 @@
           "@type": "Offer",
           "price": "0"
         },
-        "downloadUrl": "https://github.com/melank/heic_ready/releases/latest",
+        "downloadUrl": "https://github.com/melank/heic_ready/blob/master/docs/build-from-source.md",
         "url": "https://melank.github.io/heic_ready/"
       }
     </script>
@@ -97,6 +97,14 @@
             "acceptedAnswer": {
               "@type": "Answer",
               "text": "設定で選べます。「共存」モードでは元ファイルをそのまま残し、「置換」モードでは元ファイルをゴミ箱に移動します。"
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "なぜ DMG ではなくソースからビルドするのですか？",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Apple Developer 証明書による公証を行っていないためです。手元でビルドして使う方法を推奨しています。"
             }
           }
         ]
@@ -136,7 +144,7 @@
             フォルダを監視し、<code>.heic</code>/<code>.heif</code> を自動変換。アップロード作業をスムーズに。
           </p>
           <div class="cta-row">
-            <a class="primary" href="https://github.com/melank/heic_ready/releases/latest" data-i18n="ctaDownload">DMG をダウンロード</a>
+            <a class="primary" href="https://github.com/melank/heic_ready/blob/master/docs/build-from-source.md" data-i18n="ctaBuild">ソースからビルド</a>
             <a class="secondary" href="https://github.com/melank/heic_ready" data-i18n="ctaSource">ソースを見る</a>
           </div>
         </section>
@@ -181,6 +189,8 @@
               <dd data-i18n="faqA2">はい。HEIC Ready はオープンソースソフトウェアです。GitHub からダウンロードできます。</dd>
               <dt data-i18n="faqQ3">変換元の HEIC ファイルはどうなりますか？</dt>
               <dd data-i18n="faqA3">設定で選べます。「共存」モードでは元ファイルをそのまま残し、「置換」モードでは元ファイルをゴミ箱に移動します。</dd>
+              <dt data-i18n="faqQ4">なぜ DMG ではなくソースからビルドするのですか？</dt>
+              <dd data-i18n="faqA4">Apple Developer 証明書による公証を行っていないためです。手元でビルドして使う方法を推奨しています。</dd>
             </dl>
           </details>
         </section>
@@ -188,6 +198,7 @@
 
       <aside class="release-sidebar">
         <h2 data-i18n="releaseTitle">リリース</h2>
+        <p class="release-note" data-i18n="releaseNote">GitHub Releases の DMG はアドホック署名のみで未公証です。一般利用はソースからのビルドを推奨します。</p>
         <div class="release-list">
           <article class="release-entry">
             <a class="release-version" href="https://github.com/melank/heic_ready/releases/tag/v0.1.0">v0.1.0</a>
