@@ -60,10 +60,14 @@ Find the app under one of:
 - `src-tauri/target/release/bundle/macos/`
 - `src-tauri/target/aarch64-apple-darwin/release/bundle/macos/`
 
+If `CARGO_TARGET_DIR` is set (e.g. by some IDE sandboxes), Tauri writes the bundle under that directory instead — look in `$CARGO_TARGET_DIR/release/bundle/macos/` (or the `aarch64-apple-darwin` / `x86_64-apple-darwin` subpaths).
+
 From the repository root:
 
 ```bash
 APP="$(find src-tauri/target -path '*/release/bundle/macos/*.app' -maxdepth 6 -print -quit)"
+# If CARGO_TARGET_DIR is set and the above find returns nothing:
+# APP="$(find "$CARGO_TARGET_DIR" -path '*/release/bundle/macos/*.app' -maxdepth 6 -print -quit)"
 codesign --force --deep -s - "$APP"
 codesign --verify --deep --strict "$APP"
 cp -R "$APP" "/Applications/HEIC Ready.app"

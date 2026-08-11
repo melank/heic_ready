@@ -49,19 +49,34 @@ echo "==> Building ${APP_NAME}.app (this may take several minutes)..."
   cargo tauri build --bundles app
 )
 
-bundle_dir=""
-for candidate in \
-  "src-tauri/target/release/bundle/macos" \
-  "src-tauri/target/aarch64-apple-darwin/release/bundle/macos" \
+bundle_candidates=(
+  "src-tauri/target/release/bundle/macos"
+  "src-tauri/target/aarch64-apple-darwin/release/bundle/macos"
   "src-tauri/target/x86_64-apple-darwin/release/bundle/macos"
-do
+)
+if [[ -n "${CARGO_TARGET_DIR:-}" ]]; then
+  bundle_candidates+=(
+    "${CARGO_TARGET_DIR}/release/bundle/macos"
+    "${CARGO_TARGET_DIR}/aarch64-apple-darwin/release/bundle/macos"
+    "${CARGO_TARGET_DIR}/x86_64-apple-darwin/release/bundle/macos"
+  )
+fi
+
+bundle_dir=""
+for candidate in "${bundle_candidates[@]}"; do
   if [[ -d "${candidate}" ]]; then
     bundle_dir="${candidate}"
     break
   fi
 done
 
-[[ -n "${bundle_dir}" ]] || die "Could not find built .app under src-tauri/target/**/release/bundle/macos"
+if [[ -z "${bundle_dir}" ]]; then
+  if [[ -n "${CARGO_TARGET_DIR:-}" ]]; then
+    die "Could not find built .app under src-tauri/target/**/release/bundle/macos or \$CARGO_TARGET_DIR/**/release/bundle/macos (CARGO_TARGET_DIR=${CARGO_TARGET_DIR})"
+  else
+    die "Could not find built .app under src-tauri/target/**/release/bundle/macos (if CARGO_TARGET_DIR is set, look there instead)"
+  fi
+fi
 
 app_path="$(find "${bundle_dir}" -maxdepth 1 -name '*.app' -print -quit)"
 [[ -n "${app_path}" ]] || die "No .app found in ${bundle_dir}"
