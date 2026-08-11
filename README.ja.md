@@ -41,7 +41,7 @@ cd heic_ready
 
 `/Applications/HEIC Ready.app` へインストールし、Gatekeeper の初回起動手順を表示します。
 
-前提条件、手動ビルド、トラブルシューティングの詳細: [`docs/build-from-source.md`](./docs/build-from-source.md)
+前提条件、手動ビルド、トラブルシューティングの詳細: [`docs/build-from-source.ja.md`](./docs/build-from-source.ja.md)
 
 ## ランタイム構成
 
@@ -117,7 +117,7 @@ cd heic_ready
 
 GitHub Releases では便宜上、アドホック署名の `.dmg` を公開することがありますが、**未公証**であり、一般利用者向けの推奨経路ではありません。
 
-- 推奨: [ソースからビルド](./docs/build-from-source.md)
+- 推奨: [ソースからビルド](./docs/build-from-source.ja.md)
 - 任意（自己責任）: `https://github.com/melank/heic_ready/releases/latest`
 - 特定バージョン: `https://github.com/melank/heic_ready/releases/tag/vX.Y.Z`
 
