@@ -36,6 +36,27 @@ cargo install tauri-cli --version "^2"
 
 ## 推奨: ワンショットインストール
 
+### 1. ソースを取得する（一般利用向けの推奨）
+
+1. [最新の GitHub Release](https://github.com/melank/heic_ready/releases/latest) を開く
+2. **Source code (zip)** をダウンロードする（`.dmg` インストーラではない）
+3. ZIP を展開する
+
+展開後のフォルダ名は `heic_ready-0.1.0` のようになります（タグ `v0.1.0` の場合）。
+
+```bash
+cd heic_ready-*   # 例: heic_ready-0.1.0
+```
+
+### 代替: Git でクローンする（最新 tip / 開発向け）
+
+```bash
+git clone https://github.com/melank/heic_ready.git
+cd heic_ready
+```
+
+### 2. インストールスクリプトを実行する
+
 リポジトリのルートで:
 
 ```bash

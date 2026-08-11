@@ -33,13 +33,18 @@ What this project intentionally does not do:
 
 Apple Developer Program enrollment is not used for this project, so public DMGs are **not notarized**. For general use, build locally:
 
+1. Open [the latest GitHub Release](https://github.com/melank/heic_ready/releases/latest)
+2. Download **Source code (zip)** (not the `.dmg`)
+3. Unzip, then:
+
 ```bash
-git clone https://github.com/melank/heic_ready.git
-cd heic_ready
+cd heic_ready-*   # e.g. heic_ready-0.1.0
 ./scripts/build-and-install.sh
 ```
 
-This installs `/Applications/HEIC Ready.app` and prints Gatekeeper first-launch steps.
+This installs `/Applications/HEIC Ready.app` and prints first-launch steps if macOS blocks the app.
+
+For the latest `master` tip or development, `git clone` also works — see [`docs/build-from-source.md`](./docs/build-from-source.md).
 
 Full prerequisites, manual build, and troubleshooting: [`docs/build-from-source.md`](./docs/build-from-source.md)
 

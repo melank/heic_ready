@@ -33,13 +33,18 @@ HEIC Ready は、設定したフォルダを監視し、追加された `*.heic`
 
 本プロジェクトでは Apple Developer Program を利用していないため、公開 DMG は**未公証**です。一般利用では手元ビルドを推奨します。
 
+1. [最新の GitHub Release](https://github.com/melank/heic_ready/releases/latest) を開く
+2. **Source code (zip)** をダウンロードする（`.dmg` ではない）
+3. 展開してから:
+
 ```bash
-git clone https://github.com/melank/heic_ready.git
-cd heic_ready
+cd heic_ready-*   # 例: heic_ready-0.1.0
 ./scripts/build-and-install.sh
 ```
 
-`/Applications/HEIC Ready.app` へインストールし、Gatekeeper の初回起動手順を表示します。
+`/Applications/HEIC Ready.app` へインストールし、macOS にブロックされた場合の初回起動手順を表示します。
+
+最新の `master` や開発用途では `git clone` も使えます。詳細は [`docs/build-from-source.ja.md`](./docs/build-from-source.ja.md) を参照してください。
 
 前提条件、手動ビルド、トラブルシューティングの詳細: [`docs/build-from-source.ja.md`](./docs/build-from-source.ja.md)
 
