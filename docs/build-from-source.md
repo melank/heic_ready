@@ -1,5 +1,7 @@
 # Build from Source
 
+**Language:** [English](./build-from-source.md) | [日本語](./build-from-source.ja.md)
+
 HEIC Ready is open source. Because the project is not enrolled in the Apple Developer Program, distributed DMGs are **not notarized**. For general use, build and install locally on your Mac.
 
 ## Requirements
@@ -33,6 +35,27 @@ cargo install tauri-cli --version "^2"
 ```
 
 ## Recommended: one-shot install
+
+### 1. Get the source (preferred for general use)
+
+1. Open [the latest GitHub Release](https://github.com/melank/heic_ready/releases/latest)
+2. Download **Source code (zip)** — not the `.dmg` installer
+3. Unzip the archive
+
+The extracted folder name looks like `heic_ready-0.1.0` (from tag `v0.1.0`).
+
+```bash
+cd heic_ready-*   # e.g. heic_ready-0.1.0
+```
+
+### Alternative: clone with Git (latest tip / development)
+
+```bash
+git clone https://github.com/melank/heic_ready.git
+cd heic_ready
+```
+
+### 2. Run the install script
 
 From the repository root:
 
@@ -105,5 +128,6 @@ Do **not** expect a notarized DMG experience.
 
 ## Related
 
+- Japanese guide: [`docs/build-from-source.ja.md`](./build-from-source.ja.md)
 - Development (`tauri dev`): see README **Development**
 - Unsigned GitHub Release DMGs (self-responsibility): see README **Releases**

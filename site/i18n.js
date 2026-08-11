@@ -6,6 +6,7 @@ const i18n = {
     heroTitle: "HEIC In. JPEG Out. No\u00A0Extra\u00A0Steps.",
     lede: 'Watch folders, auto-convert <code>.heic</code>/<code>.heif</code>, and keep your upload workflow frictionless.',
     ctaBuild: "Build from Source",
+    ctaBuildHref: "https://github.com/melank/heic_ready/blob/master/docs/build-from-source.md",
     ctaSource: "View Source",
     releaseNote: "DMGs on GitHub Releases are ad-hoc signed and not notarized. Prefer building from source.",
     cardAutoConvertTitle: "Zero Conversion Effort",
@@ -35,6 +36,7 @@ const i18n = {
     heroTitle: "iPhone の写真を JPEG に。\nPCに移したら、すぐにアップロード",
     lede: 'フォルダを監視し、<code>.heic</code>/<code>.heif</code> を自動変換。アップロード作業をスムーズに。',
     ctaBuild: "ソースからビルド",
+    ctaBuildHref: "https://github.com/melank/heic_ready/blob/master/docs/build-from-source.ja.md",
     ctaSource: "ソースを見る",
     releaseNote: "GitHub Releases の DMG はアドホック署名のみで未公証です。一般利用はソースからのビルドを推奨します。",
     cardAutoConvertTitle: "HEIC 変換の手間をゼロに",
@@ -78,6 +80,13 @@ function applyLang(lang) {
       } else {
         el.textContent = dict[key];
       }
+    }
+  });
+
+  document.querySelectorAll("[data-i18n-href]").forEach((el) => {
+    const key = el.getAttribute("data-i18n-href");
+    if (dict[key] !== undefined) {
+      el.setAttribute("href", dict[key]);
     }
   });
 
