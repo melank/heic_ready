@@ -1,5 +1,7 @@
 # Build from Source
 
+**Language:** [English](./build-from-source.md) | [日本語](./build-from-source.ja.md)
+
 HEIC Ready is open source. Because the project is not enrolled in the Apple Developer Program, distributed DMGs are **not notarized**. For general use, build and install locally on your Mac.
 
 ## Requirements
@@ -105,5 +107,6 @@ Do **not** expect a notarized DMG experience.
 
 ## Related
 
+- Japanese guide: [`docs/build-from-source.ja.md`](./build-from-source.ja.md)
 - Development (`tauri dev`): see README **Development**
 - Unsigned GitHub Release DMGs (self-responsibility): see README **Releases**
