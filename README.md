@@ -27,6 +27,20 @@ What this project intentionally does not do:
 - Cloud upload
 - Web service integration
 
+## Get Started (Build from Source)
+
+Apple Developer Program enrollment is not used for this project, so public DMGs are **not notarized**. For general use, build locally:
+
+```bash
+git clone https://github.com/melank/heic_ready.git
+cd heic_ready
+./scripts/build-and-install.sh
+```
+
+This installs `/Applications/HEIC Ready.app` and prints Gatekeeper first-launch steps.
+
+Full prerequisites, manual build, and troubleshooting: [`docs/build-from-source.md`](./docs/build-from-source.md)
+
 ## Runtime Architecture
 
 - Core: Rust
@@ -99,17 +113,18 @@ Main fields:
 
 ## Releases
 
-- Distribution channel: GitHub Releases
-- Installer format: `.dmg` (macOS)
-- Download latest installer: `https://github.com/melank/heic_ready/releases/latest`
-- Download a specific version: `https://github.com/melank/heic_ready/releases/tag/vX.Y.Z`
+GitHub Releases may still publish an ad-hoc-signed `.dmg` for convenience, but it is **not notarized** and is **not** the recommended path for general users.
+
+- Preferred: [Build from source](./docs/build-from-source.md)
+- Optional (self-responsibility): `https://github.com/melank/heic_ready/releases/latest`
+- Specific version: `https://github.com/melank/heic_ready/releases/tag/vX.Y.Z`
 
 Release notes policy:
 
 - Version-specific notes are stored under `docs/releases/` (example: `docs/releases/v0.1.0.md`)
 - Release publication is triggered by `tag push` (`vX.Y.Z`)
-- Installer (`.dmg`) is built, ad-hoc codesigned, and uploaded to GitHub Release by `.github/workflows/release.yml`
-- The app is not notarized; users need to right-click → Open on first launch
+- Installer (`.dmg`) is built, ad-hoc codesigned, and uploaded by `.github/workflows/release.yml`
+- First launch of an unsigned/ad-hoc build requires right-click → Open (or Privacy & Security)
 
 ## Landing Page
 
