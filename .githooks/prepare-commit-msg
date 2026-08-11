@@ -1,0 +1,8 @@
+#!/usr/bin/env sh
+set -eu
+
+# Cursor 等が付与するエージェント由来の Co-authored-by を除去する
+msg_file=$1
+tmp=$(mktemp)
+sed '/^Co-authored-by: Cursor <cursoragent@cursor.com>$/d' "$msg_file" > "$tmp"
+mv "$tmp" "$msg_file"

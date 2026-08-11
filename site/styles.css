@@ -282,6 +282,13 @@ code {
   font-size: 16px;
 }
 
+.release-note {
+  margin: 0 0 0.75rem;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  opacity: 0.85;
+}
+
 .release-list {
   display: flex;
   flex-direction: column;
