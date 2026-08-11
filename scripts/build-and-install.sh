@@ -63,7 +63,7 @@ done
 
 [[ -n "${bundle_dir}" ]] || die "Could not find built .app under src-tauri/target/**/release/bundle/macos"
 
-app_path="$(find "${bundle_dir}" -maxdepth 1 -name '*.app' -print | head -n 1)"
+app_path="$(find "${bundle_dir}" -maxdepth 1 -name '*.app' -print -quit)"
 [[ -n "${app_path}" ]] || die "No .app found in ${bundle_dir}"
 
 echo "==> Ad-hoc codesigning ${app_path}"
@@ -72,7 +72,11 @@ codesign --verify --deep --strict "${app_path}"
 
 if [[ -e "${INSTALL_PATH}" ]]; then
   echo "Existing app found at ${INSTALL_PATH}"
-  read -r -p "Overwrite? [y/N] " reply
+  if [[ ! -t 0 ]]; then
+    die "Overwrite requires interactive confirmation (stdin is not a terminal).
+Built app left at: ${app_path}"
+  fi
+  read -r -p "Overwrite? [y/N] " reply || reply=""
   case "${reply}" in
     y|Y|yes|YES) ;;
     *)
@@ -80,6 +84,10 @@ if [[ -e "${INSTALL_PATH}" ]]; then
       exit 0
       ;;
   esac
+  if pgrep -f "${INSTALL_PATH}" >/dev/null 2>&1; then
+    die "HEIC Ready is running. Quit the app first, then re-run this script.
+Built app left at: ${app_path}"
+  fi
   rm -rf "${INSTALL_PATH}"
 fi
 
@@ -90,7 +98,7 @@ cat <<EOF
 
 Installed: ${INSTALL_PATH}
 
-First launch (Gatekeeper):
+If macOS blocks the app on first launch:
   1. Finder で「アプリケーション」を開く
   2. 「${APP_NAME}」を Control-クリック（右クリック）→「開く」
   3. 確認ダイアログで「開く」を選ぶ

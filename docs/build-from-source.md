@@ -46,7 +46,7 @@ The script:
 2. Builds `HEIC Ready.app` with `cargo tauri build --bundles app`
 3. Ad-hoc codesigns the app
 4. Copies it to `/Applications/HEIC Ready.app` (asks before overwrite)
-5. Prints first-launch / Gatekeeper instructions
+5. Prints first-launch instructions (if macOS blocks the app)
 
 ## Manual build (without the script)
 
@@ -60,18 +60,18 @@ Find the app under one of:
 - `src-tauri/target/release/bundle/macos/`
 - `src-tauri/target/aarch64-apple-darwin/release/bundle/macos/`
 
-Then:
+From the repository root:
 
 ```bash
-APP="$(find src-tauri/target -path '*/release/bundle/macos/*.app' -maxdepth 6 -print | head -n 1)"
+APP="$(find src-tauri/target -path '*/release/bundle/macos/*.app' -maxdepth 6 -print -quit)"
 codesign --force --deep -s - "$APP"
 codesign --verify --deep --strict "$APP"
 cp -R "$APP" "/Applications/HEIC Ready.app"
 ```
 
-## First launch (Gatekeeper)
+## First launch (if macOS blocks the app)
 
-Local builds are ad-hoc signed and not notarized. On first open macOS may say the developer cannot be verified.
+Local builds are ad-hoc signed and not notarized. If macOS blocks the app, it may say the developer cannot be verified.
 
 1. Open **Applications** in Finder
 2. Control-click (right-click) **HEIC Ready** → **Open**
@@ -96,7 +96,7 @@ Do **not** expect a notarized DMG experience.
 | `rustc` / `cargo` not found | Install Rust via https://rustup.rs/ |
 | `cargo-tauri not found` | `cargo install tauri-cli --version "^2"` |
 | Build fails in `src-tauri` | Ensure you are on macOS with CLT installed; re-run after fixing the first error in the log |
-| App won’t open / blocked | Use Control-click → Open, or Privacy & Security |
+| App won’t open / blocked by macOS | Use Control-click → Open, or Privacy & Security |
 | Permission denied writing `/Applications` | Check Disk Access / admin rights; or copy the `.app` manually to a folder you own |
 
 ## Related
