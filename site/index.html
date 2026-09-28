@@ -141,6 +141,115 @@
           </div>
         </section>
 
+        <section class="flow" aria-labelledby="flow-title">
+          <h2 id="flow-title" data-i18n="flowTitle">動作イメージ</h2>
+          <div class="flow-scene-wrap">
+            <div class="flow-scene" aria-hidden="true">
+              <svg class="flow-defs" width="0" height="0" focusable="false">
+                <symbol id="flow-photo" viewBox="0 0 60 40" preserveAspectRatio="xMidYMid slice">
+                  <rect width="60" height="40" fill="#d8f8f2" />
+                  <circle cx="45" cy="11" r="5" fill="#f2c14e" />
+                  <path d="M0 40 18 18l12 12 10-8 20 18Z" fill="#7fb8a4" />
+                  <path d="M0 40c12-9 26-11 60-4v4Z" fill="#0f6f63" />
+                </symbol>
+              </svg>
+              <svg class="flow-arrows" viewBox="0 0 732 212" fill="none" focusable="false">
+                <path class="flow-dash" d="M174 106H244" />
+                <path class="flow-head" d="M239 101l5 5-5 5" />
+                <path class="flow-dash" d="M485 106H524" />
+                <path class="flow-head" d="M519 101l5 5-5 5" />
+              </svg>
+
+              <div class="flow-phone">
+                <div class="flow-phone-screen">
+                  <svg class="flow-photo flow-photo-phone" focusable="false"><use href="#flow-photo" /></svg>
+                  <svg class="flow-arcs" viewBox="0 0 44 30" fill="none" focusable="false">
+                    <circle cx="22" cy="24" r="3.2" />
+                    <path class="flow-arc flow-arc-1" d="M14.2 20.2a9.5 9.5 0 0 1 15.6 0" />
+                    <path class="flow-arc flow-arc-2" d="M9.2 15.2a15.5 15.5 0 0 1 25.6 0" />
+                    <path class="flow-arc flow-arc-3" d="M4.2 10.2a21.5 21.5 0 0 1 35.6 0" />
+                  </svg>
+                </div>
+              </div>
+
+              <div class="flow-folder">
+                <div class="flow-folder-bar">
+                  <span class="flow-dot"></span><span class="flow-dot"></span><span class="flow-dot"></span>
+                  <span class="flow-folder-name">
+                    <svg viewBox="0 0 12 10" fill="none" focusable="false"><path d="M1 2.2c0-.6.4-1 1-1h2.6l1.2 1.3H10c.6 0 1 .4 1 1V8c0 .6-.4 1-1 1H2c-.6 0-1-.4-1-1Z" /></svg>
+                    <span data-i18n="flowFolderName">監視フォルダ</span>
+                  </span>
+                </div>
+                <svg class="flow-gen" viewBox="0 0 16 12" fill="none" focusable="false"><path d="M1 6h12M9 2l4 4-4 4" /></svg>
+                <div class="flow-status">
+                  <span class="flow-status-idle"><span class="flow-status-dot"></span><span data-i18n="flowStatusWatching">HEIC Ready が監視中</span></span>
+                  <span class="flow-status-done"><svg viewBox="0 0 12 12" fill="none" focusable="false"><path d="M2 6.5l2.6 2.6L10 3.6" /></svg><span data-i18n="flowStatusDone">JPEG に変換しました</span></span>
+                </div>
+              </div>
+
+              <div class="flow-sns">
+                <div class="flow-sns-head">
+                  <span class="flow-sns-avatar"></span>
+                  <span class="flow-sns-lines"><span class="flow-bar flow-bar-name"></span><span class="flow-bar flow-bar-sub"></span></span>
+                </div>
+                <div class="flow-sns-photo">
+                  <svg class="flow-sns-placeholder" viewBox="0 0 26 22" fill="none" focusable="false"><rect x="1.5" y="1.5" width="23" height="19" rx="3" /><circle cx="9" cy="8" r="2.2" /><path d="M3 18l6-6 4 4 3-3 7 6" /></svg>
+                  <svg class="flow-photo flow-photo-post" focusable="false"><use href="#flow-photo" /></svg>
+                </div>
+                <div class="flow-sns-caption"><span class="flow-bar flow-bar-cap1"></span><span class="flow-bar flow-bar-cap2"></span></div>
+                <div class="flow-sns-actions">
+                  <span class="flow-sns-icons">
+                    <svg class="flow-heart" viewBox="0 0 24 22" focusable="false"><path d="M12 20.5S2 14.6 2 7.6A5 5 0 0 1 12 5a5 5 0 0 1 10 2.6c0 7-10 12.9-10 12.9Z" /></svg>
+                    <svg viewBox="0 0 24 24" fill="none" focusable="false"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v8a2.5 2.5 0 0 1-2.5 2.5H10l-5 4v-4H6.5A2.5 2.5 0 0 1 4 13.5Z" /></svg>
+                    <svg viewBox="0 0 24 24" fill="none" focusable="false"><path d="M21 3 10 14M21 3l-7 18-4-7-7-4Z" /></svg>
+                  </span>
+                  <span class="flow-posted" data-i18n="flowPosted">投稿しました</span>
+                </div>
+              </div>
+
+              <div class="flow-file flow-file-heic">
+                <div class="flow-file-motion">
+                  <div class="flow-file-card">
+                    <svg class="flow-photo flow-photo-file" focusable="false"><use href="#flow-photo" /></svg>
+                    <span class="flow-tag flow-tag-heic">HEIC</span>
+                  </div>
+                </div>
+              </div>
+              <div class="flow-file flow-file-jpeg">
+                <div class="flow-file-motion">
+                  <div class="flow-file-card">
+                    <svg class="flow-photo flow-photo-file" focusable="false"><use href="#flow-photo" /></svg>
+                    <span class="flow-tag flow-tag-jpeg">JPEG</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <ol class="flow-steps">
+            <li>
+              <span class="flow-num flow-num-1">1</span>
+              <span class="flow-step-text">
+                <strong data-i18n="flowStep1Title">iPhone から AirDrop で送る</strong>
+                <span data-i18n="flowStep1Desc">送り先は Mac の監視フォルダ</span>
+              </span>
+            </li>
+            <li>
+              <span class="flow-num flow-num-2">2</span>
+              <span class="flow-step-text">
+                <strong data-i18n="flowStep2Title">置いた瞬間に JPEG へ</strong>
+                <span data-i18n="flowStep2Desc">待ち時間なし。操作は一切不要</span>
+              </span>
+            </li>
+            <li>
+              <span class="flow-num flow-num-3">3</span>
+              <span class="flow-step-text">
+                <strong data-i18n="flowStep3Title">JPEG を SNS にアップ</strong>
+                <span data-i18n="flowStep3Desc">変換済みの写真をそのまま添付</span>
+              </span>
+            </li>
+          </ol>
+        </section>
+
         <section class="grid">
           <article class="card">
             <h2 data-i18n="cardAutoConvertTitle">HEIC 変換の手間をゼロに</h2>

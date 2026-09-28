@@ -18,6 +18,17 @@
 
 - `https://melank.github.io/heic_ready/`
 
+## ページ構成（`site/index.html`）
+
+1. ヒーロー（1文の訴求 + CTA）
+2. 動作イメージ（`.flow`）: iPhone → 監視フォルダ → SNS の流れを CSS アニメーションで表現。JS は使わず、`prefers-reduced-motion` では投稿完了の場面で静止する
+3. 機能カード（`.grid`）
+4. 使いかた・利用の流れ（`.steps`）
+5. よくある質問（`.faq`）
+6. リリース一覧（`.release-sidebar`）
+
+文言は `site/i18n.js` の `data-i18n` キーで EN/JA を切り替える。
+
 ## 更新フロー
 
 1. `site/` を更新
