@@ -13,8 +13,6 @@ const i18n = {
     cardAutoConvertDesc: "Set a watch folder and HEIC files are converted to JPEG automatically. No more manual conversions.",
     cardBackgroundTitle: "Zero Overhead While Idle",
     cardBackgroundDesc: "Sits quietly in the menu bar. Event-driven design means virtually no CPU or memory usage while waiting.",
-    cardAtomicTitle: "Atomic Output",
-    cardAtomicDesc: "Writes to temporary files first, then renames, so incomplete JPEG files are not surfaced.",
     stepsTitle: "How to Use",
     step1: "AirDrop HEIC photos to your watch folder.",
     step2: "HEIC Ready detects and converts in the background.",
@@ -27,7 +25,7 @@ const i18n = {
     faqA2: "Yes. HEIC Ready is open-source software available on GitHub.",
     faqQ3: "What happens to the original HEIC files?",
     faqA3: "You choose. In \"Coexist\" mode the originals stay; in \"Replace\" mode they are moved to the Trash.",
-    releaseSummary_v0_1_0: "Initial release. Folder watch with auto HEIC-to-JPEG conversion, atomic output, tray-resident UI, and bilingual support (EN/JA).",
+    releaseSummary_v0_1_0: "Initial release. Folder watch with auto HEIC-to-JPEG conversion, tray-resident UI, and bilingual support (EN/JA).",
   },
   ja: {
     metaTitle: "HEIC Ready — Mac で HEIC 変換を自動化 | HEIC→JPEG 変換アプリ",
@@ -43,8 +41,6 @@ const i18n = {
     cardAutoConvertDesc: "監視フォルダを設定すると、以降はそこに HEIC をコピーするだけ。毎回の変換作業はもう不要です。",
     cardBackgroundTitle: "常駐しても負荷ゼロ",
     cardBackgroundDesc: "ファイルイベント駆動で動作するため待機中の CPU・メモリ消費はほぼありません。",
-    cardAtomicTitle: "アトミック出力",
-    cardAtomicDesc: "一時ファイルに書き込み後にリネーム。不完全な JPEG ファイルが生成されることはありません。",
     stepsTitle: "使いかた・利用の流れ",
     step1: "AirDrop で HEIC 写真を監視フォルダに入れる。",
     step2: "HEIC Ready がバックグラウンドで検知・変換。",
@@ -57,7 +53,7 @@ const i18n = {
     faqA2: "はい。HEIC Ready はオープンソースソフトウェアで、GitHub で公開しています。",
     faqQ3: "変換元の HEIC ファイルはどうなりますか？",
     faqA3: "設定で選べます。「共存」モードでは元ファイルをそのまま残し、「置換」モードでは元ファイルをゴミ箱に移動します。",
-    releaseSummary_v0_1_0: "初回リリース。フォルダ監視による HEIC→JPEG 自動変換、アトミック出力、トレイ常駐 UI、日英2言語対応。",
+    releaseSummary_v0_1_0: "初回リリース。フォルダ監視による HEIC→JPEG 自動変換、トレイ常駐 UI、日英2言語対応。",
   },
 };
 
