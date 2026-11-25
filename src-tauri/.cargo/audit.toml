@@ -1,0 +1,10 @@
+# cargo audit の除外設定。除外するのは、互換な更新で直せず、このアプリでは該当の経路を通らないものに限る。
+[advisories]
+ignore = [
+    # quick-xml 0.38: tauri-codegen が使う plist 経由のビルド時の依存。読むのはリポジトリ内の設定ファイルだけで、外部からの入力は通らない。
+    # plist が quick-xml の修正版に上がるまで除外する。
+    "RUSTSEC-2026-0194",
+    "RUSTSEC-2026-0195",
+    # rkyv 0.7: macOS 向けのビルドには含まれない（cargo tree -i rkyv --target aarch64-apple-darwin で該当なし）。
+    "RUSTSEC-2026-0235",
+]

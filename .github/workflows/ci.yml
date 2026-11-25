@@ -38,3 +38,21 @@ jobs:
 
       - name: Run tests
         run: cargo test --lib
+
+  audit:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src-tauri
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Install cargo-audit
+        run: cargo install cargo-audit --locked --version 0.23.0
+
+      # 除外する勧告は src-tauri/.cargo/audit.toml に理由とともに書く
+      - name: Audit dependencies
+        run: cargo audit
