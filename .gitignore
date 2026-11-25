@@ -22,3 +22,13 @@ src-tauri/.tauri/
 
 # Claude Code local settings
 .claude/settings.local.json
+
+# Signing keys and secrets (Apple certificates, API keys)
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.p8
+*.cer
+*.mobileprovision
