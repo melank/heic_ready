@@ -8,10 +8,12 @@
       "Bash(git log *)",
       "Bash(git add *)",
       "Bash(git commit *)",
-      "Bash(git tag *)",
-      "Bash(gh run *)",
-      "Bash(gh release *)",
-      "Bash(gh workflow *)",
+      "Bash(gh run list*)",
+      "Bash(gh run view*)",
+      "Bash(gh release list*)",
+      "Bash(gh release view*)",
+      "Bash(gh workflow list*)",
+      "Bash(gh workflow view*)",
       "Bash(ls *)"
     ],
     "deny": [
